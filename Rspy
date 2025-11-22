@@ -84,10 +84,35 @@ tb.MouseButton1Click:Connect(function()open=not open if open then openAnim()else
 cb.MouseButton1Click:Connect(function()open=false closeAnim()end)
 tb.MouseEnter:Connect(function()f(tb,{Size=UDim2.new(0,55,0,55)},.3,Enum.EasingStyle.Back)f(tbst,{Transparency=.2},.2)f(tbgl,{ImageTransparency=.5,Size=UDim2.new(1,45,1,45)},.3)end)
 tb.MouseLeave:Connect(function()f(tb,{Size=UDim2.new(0,50,0,50)},.3,Enum.EasingStyle.Back)f(tbst,{Transparency=open and 0 or.5},.2)f(tbgl,{ImageTransparency=.7,Size=UDim2.new(1,35,1,35)},.3)end)
-local drag=false local ds
-hd.InputBegan:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then drag=true ds=Vector2.new(inp.Position.X,inp.Position.Y)-Vector2.new(m.Position.X.Offset,m.Position.Y.Offset)end end)
-hd.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end end)
-b.InputChanged:Connect(function(inp)if drag and inp.UserInputType==Enum.UserInputType.MouseMovement then local np=Vector2.new(inp.Position.X,inp.Position.Y)-ds m.Position=UDim2.new(0,np.X,0,np.Y)m.AnchorPoint=Vector2.new(0,0)end end)
+
+-- DRAGGING LOGIC --
+local dragging=false 
+local dragInput,dragStart,startPos
+local function updateDrag(input)
+    local delta=input.Position-dragStart
+    m.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
+    m.AnchorPoint=Vector2.new(0.5,0.5)
+end
+hd.InputBegan:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+        dragging=true
+        dragStart=input.Position
+        startPos=m.Position
+        input.Changed:Connect(function()
+            if input.UserInputState==Enum.UserInputState.End then dragging=false end
+        end)
+    end
+end)
+hd.InputChanged:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then
+        dragInput=input
+    end
+end)
+b.InputChanged:Connect(function(input)
+    if input==dragInput and dragging then updateDrag(input) end
+end)
+-- END DRAG LOGIC --
+
 stb.Focused:Connect(function()f(sbst,{Color=Color3.fromRGB(100,150,255),Transparency=.2},.2)f(sb,{BackgroundColor3=Color3.fromRGB(25,30,40)},.2)end)
 stb.FocusLost:Connect(function()f(sbst,{Color=Color3.fromRGB(60,80,120),Transparency=.5},.2)f(sb,{BackgroundColor3=Color3.fromRGB(15,15,22)},.2)end)
 stb:GetPropertyChangedSignal("Text"):Connect(function()
@@ -181,20 +206,19 @@ h(vbx,8)ui(vbx,Color3.fromRGB(50,60,80))
 local vlbl=g("TextLabel",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text=tostring(val),TextColor3=Color3.fromRGB(200,220,255),TextSize=12,Font=Enum.Font.GothamBold,Parent=vbx})
 table.insert(allelements,{frame=sl,name=text or"Slider",tab=name})
 local dragging=false
-local function upd(x)
+local function upd(input)
 local bx=bar.AbsolutePosition.X
 local bw=bar.AbsoluteSize.X
-local pct=math.clamp((x-bx)/bw,0,1)
+local pct=math.clamp((input.Position.X-bx)/bw,0,1)
 val=math.floor(min+(max-min)*pct)
 vlbl.Text=tostring(val)
 f(fill,{Size=UDim2.new(pct,0,1,0)},.1)
 if callback then callback(val)end
 end
-local btn=g("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="",Parent=bar})
-btn.InputBegan:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then dragging=true upd(inp.Position.X)f(bst,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.2)f(slst,{Color=Color3.fromRGB(80,120,200),Transparency=.3},.2)f(fgl,{ImageTransparency=.5},.2)end end)
-btn.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false f(bst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)f(slst,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)f(fgl,{ImageTransparency=.7},.2)end end)
-b.InputChanged:Connect(function(inp)if dragging and inp.UserInputType==Enum.UserInputType.MouseMovement then upd(inp.Position.X)end end)
-b.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 and dragging then dragging=false f(bst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)f(slst,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)f(fgl,{ImageTransparency=.7},.2)end end)
+local btn=g("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="",ZIndex=10,Parent=sl})
+btn.InputBegan:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then dragging=true upd(inp)f(bst,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.2)f(slst,{Color=Color3.fromRGB(80,120,200),Transparency=.3},.2)f(fgl,{ImageTransparency=.5},.2)end end)
+b.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then dragging=false f(bst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)f(slst,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)f(fgl,{ImageTransparency=.7},.2)end end)
+b.InputChanged:Connect(function(inp)if dragging and(inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch)then upd(inp)end end)
 return{Set=function(v)val=v vlbl.Text=tostring(v)local pct=(v-min)/(max-min)f(fill,{Size=UDim2.new(pct,0,1,0)},.2)end,Get=function()return val end}
 end
 function t:Dropdown(text,ic,options,default,callback)
