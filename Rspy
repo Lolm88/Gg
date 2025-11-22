@@ -2,21 +2,21 @@ local a=game:GetService("TweenService")
 local b=game:GetService("UserInputService")
 local c=game:GetService("Players").LocalPlayer
 local d=c:WaitForChild("PlayerGui")
-local e={Home="rbxassetid://7733960981",Settings="rbxassetid://7734053495",User="rbxassetid://7733717504",Eye="rbxassetid://7734054629",Globe="rbxassetid://7733715053",Check="rbxassetid://7733715400",X="rbxassetid://7733715725",Search="rbxassetid://7733716294",Bell="rbxassetid://7733960891",Star="rbxassetid://7733716566",Info="rbxassetid://7733716023",Bolt="rbxassetid://7733960651",Heart="rbxassetid://7733715883"}
+local e={Home="rbxassetid://7733960981",Settings="rbxassetid://7734053495",User="rbxassetid://7733717504",Eye="rbxassetid://7734054629",Globe="rbxassetid://7733715053",Check="rbxassetid://7733715400",X="rbxassetid://7733715725",Search="rbxassetid://7733716294",Bell="rbxassetid://7733960891",Star="rbxassetid://7733716566",Info="rbxassetid://7733716023",Bolt="rbxassetid://7733960651",Heart="rbxassetid://7733715883",Warning="rbxassetid://7733717365",Success="rbxassetid://7733715400",List="rbxassetid://7733716023",Arrow="rbxassetid://7733717504",Slider="rbxassetid://7734053495",Dropdown="rbxassetid://7733715053"}
 local function f(o,p,t,s,dr)a:Create(o,TweenInfo.new(t or.3,s or Enum.EasingStyle.Quart,dr or Enum.EasingDirection.Out),p):Play()end
-local function g(c,p)local i=Instance.new(c)for k,v in pairs(p)do if k~="Parent"then i[k]=v end end if p.Parent then i.Parent=p.Parent end return i end
+local function g(cl,p)local i=Instance.new(cl)for k,v in pairs(p)do if k~="Parent"then i[k]=v end end if p.Parent then i.Parent=p.Parent end return i end
 local function h(p,r)return g("UICorner",{CornerRadius=UDim.new(0,r or 12),Parent=p})end
-local function i(p,c,t)return g("UIStroke",{Color=c or Color3.fromRGB(80,120,200),Thickness=t or 1,Transparency=.5,Parent=p})end
-local function glow(p,c,s)local gl=g("ImageLabel",{Size=UDim2.new(1,s or 30,1,s or 30),Position=UDim2.new(.5,-(s or 30)/2,.5,-(s or 30)/2),BackgroundTransparency=1,Image="rbxassetid://5028857084",ImageColor3=c or Color3.fromRGB(100,150,255),ImageTransparency=.8,ZIndex=p.ZIndex-1,Parent=p})return gl end
+local function ui(p,col,t)return g("UIStroke",{Color=col or Color3.fromRGB(80,120,200),Thickness=t or 1,Transparency=.5,Parent=p})end
+local function glow(p,col,s)return g("ImageLabel",{Size=UDim2.new(1,s or 30,1,s or 30),Position=UDim2.new(.5,-(s or 30)/2,.5,-(s or 30)/2),BackgroundTransparency=1,Image="rbxassetid://5028857084",ImageColor3=col or Color3.fromRGB(100,150,255),ImageTransparency=.8,ZIndex=p.ZIndex-1,Parent=p})end
 local j={}
 local nq={}
-local function updateNotifyPositions()for idx,n in ipairs(nq)do if n and n.Parent then f(n,{Position=UDim2.new(1,-320,1,-20-(idx*90))},.3,Enum.EasingStyle.Back)end end end
+local function updateNP()for idx,n in ipairs(nq)do if n and n.Parent then f(n,{Position=UDim2.new(1,-320,1,-20-(idx*90))},.3,Enum.EasingStyle.Back)end end end
 function j:Notify(title,text,dur,icon)
 local sg=d:FindFirstChild("MirageNotify")or g("ScreenGui",{Name="MirageNotify",ResetOnSpawn=false,Parent=d})
-local n=g("Frame",{Size=UDim2.new(0,300,0,80),Position=UDim2.new(1,320,1,-110),BackgroundColor3=Color3.fromRGB(15,18,25),BackgroundTransparency=.1,Parent=sg})
-h(n,14)local nst=i(n,Color3.fromRGB(100,150,255),1.5)
+local n=g("Frame",{Size=UDim2.new(0,300,0,80),Position=UDim2.new(1,320,1,-110),BackgroundColor3=Color3.fromRGB(15,18,25),Parent=sg})
+h(n,14)local nst=ui(n,Color3.fromRGB(100,150,255),1.5)
 local ngl=glow(n,Color3.fromRGB(80,120,200),40)ngl.ImageTransparency=1
-table.insert(nq,n)updateNotifyPositions()
+table.insert(nq,n)updateNP()
 local ic=g("ImageLabel",{Size=UDim2.new(0,28,0,28),Position=UDim2.new(0,14,0,14),BackgroundTransparency=1,Image=e[icon]or e.Bell,ImageColor3=Color3.fromRGB(100,150,255),Parent=n})
 g("TextLabel",{Size=UDim2.new(1,-60,0,22),Position=UDim2.new(0,52,0,12),BackgroundTransparency=1,Text=title or"Notice",TextColor3=Color3.fromRGB(240,245,255),TextSize=14,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=n})
 g("TextLabel",{Size=UDim2.new(1,-60,0,18),Position=UDim2.new(0,52,0,38),BackgroundTransparency=1,Text=text or"",TextColor3=Color3.fromRGB(140,150,180),TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,Parent=n})
@@ -24,17 +24,14 @@ local pb=g("Frame",{Size=UDim2.new(1,-20,0,4),Position=UDim2.new(0,10,1,-12),Bac
 h(pb,2)
 local pf=g("Frame",{Size=UDim2.new(1,0,1,0),BackgroundColor3=Color3.fromRGB(100,150,255),Parent=pb})
 h(pf,2)
-local pfg=Instance.new("UIGradient",pf)pfg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(100,150,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,100,255))}pfg.Rotation=0
-f(ngl,{ImageTransparency=.7},.4)
-f(ic,{Rotation=360},.5,Enum.EasingStyle.Back)
+local pfg=Instance.new("UIGradient",pf)pfg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(100,150,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,100,255))}
+f(ngl,{ImageTransparency=.7},.4)f(ic,{Rotation=360},.5,Enum.EasingStyle.Back)
 spawn(function()
 local dt=dur or 3
 for x=100,0,-1 do pf.Size=UDim2.new(x/100,0,1,0)pfg.Rotation=(100-x)*3.6 wait(dt/100)end
 f(n,{Position=UDim2.new(1,320,n.Position.Y.Scale,n.Position.Y.Offset),BackgroundTransparency=1},.4,Enum.EasingStyle.Back,Enum.EasingDirection.In)
 f(nst,{Transparency=1},.3)f(ngl,{ImageTransparency=1},.3)
-wait(.4)
-for idx,v in ipairs(nq)do if v==n then table.remove(nq,idx)break end end
-n:Destroy()updateNotifyPositions()
+wait(.4)for idx,v in ipairs(nq)do if v==n then table.remove(nq,idx)break end end n:Destroy()updateNP()
 end)
 return n
 end
@@ -42,17 +39,16 @@ function j:Window(title)
 local w={}
 local sg=g("ScreenGui",{Name="MirageUI",ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,Parent=d})
 local tb=g("ImageButton",{Size=UDim2.new(0,50,0,50),Position=UDim2.new(0,20,0.5,-25),BackgroundColor3=Color3.fromRGB(15,18,25),Parent=sg})
-h(tb,14)local tbst=i(tb,Color3.fromRGB(100,150,255),2)
+h(tb,14)local tbst=ui(tb,Color3.fromRGB(100,150,255),2)
 local tbgl=glow(tb,Color3.fromRGB(100,150,255),35)
 local tbic=g("ImageLabel",{Size=UDim2.new(0,24,0,24),Position=UDim2.new(0.5,-12,0.5,-12),BackgroundTransparency=1,Image=e.Star,ImageColor3=Color3.fromRGB(100,150,255),Parent=tb})
 spawn(function()while wait(.03)do if tbic and tbic.Parent then tbic.Rotation=tbic.Rotation+1 end end end)
 spawn(function()while wait(.05)do if tbgl and tbgl.Parent then tbgl.ImageTransparency=.7+math.sin(tick()*3)*.1 end end end)
 local m=g("Frame",{Size=UDim2.new(0,0,0,0),Position=UDim2.new(0.5,0,0.5,0),AnchorPoint=Vector2.new(.5,.5),BackgroundColor3=Color3.fromRGB(12,14,20),Visible=false,ClipsDescendants=true,Parent=sg})
-h(m,16)local mst=i(m,Color3.fromRGB(80,120,200),1.5)
+h(m,16)local mst=ui(m,Color3.fromRGB(80,120,200),1.5)
 local mgl=glow(m,Color3.fromRGB(60,100,180),60)mgl.ImageTransparency=1
 local hd=g("Frame",{Size=UDim2.new(1,0,0,55),BackgroundColor3=Color3.fromRGB(8,10,15),Parent=m})
-h(hd,16)
-g("Frame",{Size=UDim2.new(1,0,0,20),Position=UDim2.new(0,0,1,-20),BackgroundColor3=Color3.fromRGB(8,10,15),Parent=hd})
+h(hd,16)g("Frame",{Size=UDim2.new(1,0,0,20),Position=UDim2.new(0,0,1,-20),BackgroundColor3=Color3.fromRGB(8,10,15),Parent=hd})
 local hdln=g("Frame",{Size=UDim2.new(1,0,0,2),Position=UDim2.new(0,0,1,0),BackgroundColor3=Color3.fromRGB(100,150,255),Parent=hd})
 local hdg=Instance.new("UIGradient",hdln)hdg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(100,150,255)),ColorSequenceKeypoint.new(.5,Color3.fromRGB(150,100,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(100,150,255))}
 spawn(function()while wait(.02)do if hdg then hdg.Offset=Vector2.new((hdg.Offset.X+.01)%2-1,0)end end end)
@@ -61,44 +57,29 @@ h(logo,10)
 local logg=Instance.new("UIGradient",logo)logg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(100,150,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,100,255))}logg.Rotation=45
 spawn(function()while wait(.03)do if logg then logg.Rotation=logg.Rotation+1 end end end)
 g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0.5,-10,0.5,-10),BackgroundTransparency=1,Image=e.Star,ImageColor3=Color3.fromRGB(255,255,255),Parent=logo})
-local ttl=g("TextLabel",{Size=UDim2.new(0,200,0,20),Position=UDim2.new(0,58,0,10),BackgroundTransparency=1,Text=title or"Mirage UI",TextColor3=Color3.fromRGB(255,255,255),TextSize=16,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=hd})
-local ttlg=Instance.new("UIGradient",ttl)ttlg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(255,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(180,200,255))}
-g("TextLabel",{Size=UDim2.new(0,200,0,14),Position=UDim2.new(0,58,0,32),BackgroundTransparency=1,Text="v1.0",TextColor3=Color3.fromRGB(100,120,160),TextSize=11,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,Parent=hd})
+g("TextLabel",{Size=UDim2.new(0,200,0,20),Position=UDim2.new(0,58,0,10),BackgroundTransparency=1,Text=title or"Mirage UI",TextColor3=Color3.fromRGB(255,255,255),TextSize=16,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=hd})
+g("TextLabel",{Size=UDim2.new(0,200,0,14),Position=UDim2.new(0,58,0,32),BackgroundTransparency=1,Text="v2.0",TextColor3=Color3.fromRGB(100,120,160),TextSize=11,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,Parent=hd})
 local sb=g("Frame",{Size=UDim2.new(0,180,0,32),Position=UDim2.new(1,-280,0,12),BackgroundColor3=Color3.fromRGB(20,24,32),Parent=hd})
-h(sb,10)local sbst=i(sb,Color3.fromRGB(50,60,80))
+h(sb,10)local sbst=ui(sb,Color3.fromRGB(50,60,80))
 g("ImageLabel",{Size=UDim2.new(0,16,0,16),Position=UDim2.new(0,10,0.5,-8),BackgroundTransparency=1,Image=e.Search,ImageColor3=Color3.fromRGB(100,120,160),Parent=sb})
 local stb=g("TextBox",{Size=UDim2.new(1,-40,1,0),Position=UDim2.new(0,32,0,0),BackgroundTransparency=1,Text="",PlaceholderText="Search...",TextColor3=Color3.fromRGB(220,220,255),PlaceholderColor3=Color3.fromRGB(80,90,120),TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,ClearTextOnFocus=false,Parent=sb})
-stb.Focused:Connect(function()f(sbst,{Color=Color3.fromRGB(100,150,255),Transparency=.2},.2)f(sb,{BackgroundColor3=Color3.fromRGB(25,30,40)},.2)end)
-stb.FocusLost:Connect(function()f(sbst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)f(sb,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)end)
 local cb=g("TextButton",{Size=UDim2.new(0,32,0,32),Position=UDim2.new(1,-44,0,12),BackgroundColor3=Color3.fromRGB(20,24,32),Text="",Parent=hd})
-h(cb,10)local cbst=i(cb,Color3.fromRGB(50,60,80))
+h(cb,10)local cbst=ui(cb,Color3.fromRGB(50,60,80))
 local cbic=g("ImageLabel",{Size=UDim2.new(0,16,0,16),Position=UDim2.new(0.5,-8,0.5,-8),BackgroundTransparency=1,Image=e.X,ImageColor3=Color3.fromRGB(200,100,100),Parent=cb})
 cb.MouseEnter:Connect(function()f(cb,{BackgroundColor3=Color3.fromRGB(60,30,30),Size=UDim2.new(0,34,0,34)},.2,Enum.EasingStyle.Back)f(cbst,{Color=Color3.fromRGB(255,100,100)},.2)f(cbic,{Rotation=90},.3)end)
 cb.MouseLeave:Connect(function()f(cb,{BackgroundColor3=Color3.fromRGB(20,24,32),Size=UDim2.new(0,32,0,32)},.2)f(cbst,{Color=Color3.fromRGB(50,60,80)},.2)f(cbic,{Rotation=0},.3)end)
 local tabs=g("Frame",{Size=UDim2.new(0,140,1,-70),Position=UDim2.new(0,10,0,60),BackgroundColor3=Color3.fromRGB(15,18,25),Parent=m})
-h(tabs,12)
-local tl=g("UIListLayout",{Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder,Parent=tabs})
-local tp=g("UIPadding",{PaddingTop=UDim.new(0,6),Parent=tabs})
+h(tabs,12)g("UIListLayout",{Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder,Parent=tabs})g("UIPadding",{PaddingTop=UDim.new(0,6),Parent=tabs})
 local cont=g("ScrollingFrame",{Size=UDim2.new(1,-170,1,-70),Position=UDim2.new(0,160,0,60),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=4,ScrollBarImageColor3=Color3.fromRGB(80,120,200),CanvasSize=UDim2.new(0,0,0,0),Parent=m})
 local cl=g("UIListLayout",{Padding=UDim.new(0,10),SortOrder=Enum.SortOrder.LayoutOrder,Parent=cont})
-local cp=g("UIPadding",{PaddingTop=UDim.new(0,5),PaddingRight=UDim.new(0,10),Parent=cont})
+g("UIPadding",{PaddingTop=UDim.new(0,5),PaddingRight=UDim.new(0,10),Parent=cont})
 cl:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()cont.CanvasSize=UDim2.new(0,0,0,cl.AbsoluteContentSize.Y+15)end)
 local open=false
 local curtab=nil
 local tabdata={}
-local function openAnim()
-m.Visible=true m.Size=UDim2.new(0,0,0,0)m.BackgroundTransparency=1
-f(m,{Size=UDim2.new(0,620,0,460),BackgroundTransparency=0},.5,Enum.EasingStyle.Back)
-f(mst,{Transparency=.3},.4)f(mgl,{ImageTransparency=.75},.5)
-f(tb,{Rotation=180},.5,Enum.EasingStyle.Back)f(tbst,{Thickness=3,Transparency=0},.3)
-j:Notify("Mirage UI","Window opened!",2,"Check")
-end
-local function closeAnim()
-f(m,{Size=UDim2.new(0,0,0,0),BackgroundTransparency=1},.4,Enum.EasingStyle.Quart,Enum.EasingDirection.In)
-f(mst,{Transparency=1},.3)f(mgl,{ImageTransparency=1},.3)
-f(tb,{Rotation=0},.5,Enum.EasingStyle.Back)f(tbst,{Thickness=2,Transparency=.5},.3)
-task.delay(.4,function()m.Visible=false end)
-end
+local allelements={}
+local function openAnim()m.Visible=true m.Size=UDim2.new(0,0,0,0)f(m,{Size=UDim2.new(0,620,0,460)},.5,Enum.EasingStyle.Back)f(mst,{Transparency=.3},.4)f(mgl,{ImageTransparency=.75},.5)f(tb,{Rotation=180},.5,Enum.EasingStyle.Back)f(tbst,{Thickness=3,Transparency=0},.3)j:Notify("Mirage UI","Window opened!",2,"Check")end
+local function closeAnim()f(m,{Size=UDim2.new(0,0,0,0)},.4,Enum.EasingStyle.Quart,Enum.EasingDirection.In)f(mst,{Transparency=1},.3)f(mgl,{ImageTransparency=1},.3)f(tb,{Rotation=0},.5,Enum.EasingStyle.Back)f(tbst,{Thickness=2,Transparency=.5},.3)task.delay(.4,function()m.Visible=false end)end
 tb.MouseButton1Click:Connect(function()open=not open if open then openAnim()else closeAnim()end end)
 cb.MouseButton1Click:Connect(function()open=false closeAnim()end)
 tb.MouseEnter:Connect(function()f(tb,{Size=UDim2.new(0,55,0,55)},.3,Enum.EasingStyle.Back)f(tbst,{Transparency=.2},.2)f(tbgl,{ImageTransparency=.5,Size=UDim2.new(1,45,1,45)},.3)end)
@@ -107,74 +88,67 @@ local drag=false local ds
 hd.InputBegan:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then drag=true ds=Vector2.new(inp.Position.X,inp.Position.Y)-Vector2.new(m.Position.X.Offset,m.Position.Y.Offset)end end)
 hd.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end end)
 b.InputChanged:Connect(function(inp)if drag and inp.UserInputType==Enum.UserInputType.MouseMovement then local np=Vector2.new(inp.Position.X,inp.Position.Y)-ds m.Position=UDim2.new(0,np.X,0,np.Y)m.AnchorPoint=Vector2.new(0,0)end end)
+stb.Focused:Connect(function()f(sbst,{Color=Color3.fromRGB(100,150,255),Transparency=.2},.2)f(sb,{BackgroundColor3=Color3.fromRGB(25,30,40)},.2)end)
+stb.FocusLost:Connect(function()f(sbst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)f(sb,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)end)
+stb:GetPropertyChangedSignal("Text"):Connect(function()
+local q=stb.Text:lower()
+for _,el in pairs(allelements)do
+if q==""then el.frame.Visible=(el.tab==curtab)
+else local match=el.name:lower():find(q,1,true)el.frame.Visible=match~=nil end
+end
+end)
 function w:Tab(name,icon)
 local t={}
 local tbtn=g("TextButton",{Size=UDim2.new(1,-12,0,40),BackgroundColor3=Color3.fromRGB(20,24,32),Text="",AutoButtonColor=false,Parent=tabs})
-h(tbtn,10)local tst=i(tbtn,Color3.fromRGB(40,50,70))
+h(tbtn,10)local tst=ui(tbtn,Color3.fromRGB(40,50,70))
 local tic=g("ImageLabel",{Size=UDim2.new(0,18,0,18),Position=UDim2.new(0,12,0.5,-9),BackgroundTransparency=1,Image=e[icon]or e.Home,ImageColor3=Color3.fromRGB(140,160,200),Parent=tbtn})
 local tname=g("TextLabel",{Size=UDim2.new(1,-44,1,0),Position=UDim2.new(0,36,0,0),BackgroundTransparency=1,Text=name or"Tab",TextColor3=Color3.fromRGB(180,190,220),TextSize=12,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=tbtn})
 local tind=g("Frame",{Size=UDim2.new(0,3,0,0),Position=UDim2.new(0,0,0.5,0),AnchorPoint=Vector2.new(0,.5),BackgroundColor3=Color3.fromRGB(100,150,255),Parent=tbtn})
 h(tind,2)
 local tcont=g("Frame",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Visible=false,Parent=cont})
-local tcl=g("UIListLayout",{Padding=UDim.new(0,8),SortOrder=Enum.SortOrder.LayoutOrder,Parent=tcont})
+g("UIListLayout",{Padding=UDim.new(0,8),SortOrder=Enum.SortOrder.LayoutOrder,Parent=tcont})
 tabdata[name]={btn=tbtn,cont=tcont,stroke=tst,label=tname,icon=tic,ind=tind}
-local function selectTab()
-tbtn.BackgroundColor3=Color3.fromRGB(80,120,200)tst.Color=Color3.fromRGB(100,150,255)tst.Transparency=.3
-tname.TextColor3=Color3.fromRGB(255,255,255)tic.ImageColor3=Color3.fromRGB(255,255,255)
-f(tind,{Size=UDim2.new(0,3,0.7,0)},.3,Enum.EasingStyle.Back)
-f(tic,{Rotation=360},.4)task.delay(.4,function()tic.Rotation=0 end)
-end
-local function deselectTab()
-f(tbtn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)f(tst,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)
-f(tname,{TextColor3=Color3.fromRGB(180,190,220)},.2)f(tic,{ImageColor3=Color3.fromRGB(140,160,200)},.2)
-f(tind,{Size=UDim2.new(0,3,0,0)},.2)
-end
+local function selectTab()tbtn.BackgroundColor3=Color3.fromRGB(80,120,200)tst.Color=Color3.fromRGB(100,150,255)tst.Transparency=.3 tname.TextColor3=Color3.fromRGB(255,255,255)tic.ImageColor3=Color3.fromRGB(255,255,255)f(tind,{Size=UDim2.new(0,3,0.7,0)},.3,Enum.EasingStyle.Back)f(tic,{Rotation=360},.4)task.delay(.4,function()tic.Rotation=0 end)end
+local function deselectTab()f(tbtn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)f(tst,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)f(tname,{TextColor3=Color3.fromRGB(180,190,220)},.2)f(tic,{ImageColor3=Color3.fromRGB(140,160,200)},.2)f(tind,{Size=UDim2.new(0,3,0,0)},.2)end
 if not curtab then curtab=name tcont.Visible=true selectTab()end
 tbtn.MouseButton1Click:Connect(function()
 if curtab~=name then
-if curtab and tabdata[curtab]then tabdata[curtab].cont.Visible=false deselectTab()for k,v in pairs(tabdata)do if k==curtab then
-f(v.btn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)f(v.stroke,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)
-f(v.label,{TextColor3=Color3.fromRGB(180,190,220)},.2)f(v.icon,{ImageColor3=Color3.fromRGB(140,160,200)},.2)f(v.ind,{Size=UDim2.new(0,3,0,0)},.2)
-end end end
-curtab=name tcont.Visible=true selectTab()cont.CanvasPosition=Vector2.new(0,0)
+if curtab and tabdata[curtab]then tabdata[curtab].cont.Visible=false for k,v in pairs(tabdata)do if k==curtab then f(v.btn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)f(v.stroke,{Color=Color3.fromRGB(40,50,70),Transparency=.5},.2)f(v.label,{TextColor3=Color3.fromRGB(180,190,220)},.2)f(v.icon,{ImageColor3=Color3.fromRGB(140,160,200)},.2)f(v.ind,{Size=UDim2.new(0,3,0,0)},.2)end end end
+curtab=name tcont.Visible=true selectTab()cont.CanvasPosition=Vector2.new(0,0)stb.Text=""
+for _,el in pairs(allelements)do el.frame.Visible=(el.tab==name)end
 end
 end)
 tbtn.MouseEnter:Connect(function()if curtab~=name then f(tbtn,{BackgroundColor3=Color3.fromRGB(30,36,48)},.2)f(tst,{Color=Color3.fromRGB(60,80,120)},.2)f(tind,{Size=UDim2.new(0,3,0.3,0)},.2)end end)
 tbtn.MouseLeave:Connect(function()if curtab~=name then f(tbtn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)f(tst,{Color=Color3.fromRGB(40,50,70)},.2)f(tind,{Size=UDim2.new(0,3,0,0)},.2)end end)
-function t:Button(text,icon,callback)
+function t:Button(text,ic,callback)
 local btn=g("TextButton",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),Text="",AutoButtonColor=false,Parent=tcont})
-h(btn,10)local bst=i(btn,Color3.fromRGB(50,60,80))local bgl=glow(btn,Color3.fromRGB(80,120,200),25)bgl.ImageTransparency=1
-local bic=g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[icon]or e.Bolt,ImageColor3=Color3.fromRGB(100,150,255),Parent=btn})
+h(btn,10)local bst=ui(btn,Color3.fromRGB(50,60,80))local bgl=glow(btn,Color3.fromRGB(80,120,200),25)bgl.ImageTransparency=1
+local bic=g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[ic]or e.Bolt,ImageColor3=Color3.fromRGB(100,150,255),Parent=btn})
 g("TextLabel",{Size=UDim2.new(1,-55,1,0),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Button",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=btn})
-local arr=g("ImageLabel",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(1,-28,0.5,-7),BackgroundTransparency=1,Image="rbxassetid://7733717504",ImageColor3=Color3.fromRGB(80,100,140),Rotation=-90,Parent=btn})
-btn.MouseButton1Click:Connect(function()
-if callback then callback()end
-f(btn,{BackgroundColor3=Color3.fromRGB(100,150,255)},.1)f(bic,{Rotation=360},.4)f(bgl,{ImageTransparency=.6},.1)
-task.delay(.1,function()f(btn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.25)f(bgl,{ImageTransparency=1},.25)end)
-task.delay(.4,function()bic.Rotation=0 end)
-end)
+local arr=g("ImageLabel",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(1,-28,0.5,-7),BackgroundTransparency=1,Image=e.Arrow,ImageColor3=Color3.fromRGB(80,100,140),Rotation=-90,Parent=btn})
+table.insert(allelements,{frame=btn,name=text or"Button",tab=name})
+btn.MouseButton1Click:Connect(function()if callback then callback()end f(btn,{BackgroundColor3=Color3.fromRGB(100,150,255)},.1)f(bic,{Rotation=360},.4)f(bgl,{ImageTransparency=.6},.1)task.delay(.1,function()f(btn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.25)f(bgl,{ImageTransparency=1},.25)end)task.delay(.4,function()bic.Rotation=0 end)end)
 btn.MouseEnter:Connect(function()f(btn,{BackgroundColor3=Color3.fromRGB(30,36,48)},.2)f(bst,{Color=Color3.fromRGB(80,120,200),Transparency=.3},.2)f(arr,{Position=UDim2.new(1,-24,0.5,-7)},.2)f(bgl,{ImageTransparency=.85},.2)end)
 btn.MouseLeave:Connect(function()f(btn,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)f(bst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)f(arr,{Position=UDim2.new(1,-28,0.5,-7)},.2)f(bgl,{ImageTransparency=1},.2)end)
 return btn
 end
-function t:Toggle(text,icon,default,callback)
+function t:Toggle(text,ic,default,callback)
 local on=default or false
 local tg=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),Parent=tcont})
-h(tg,10)local tgst=i(tg,on and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80))tgst.Transparency=on and.3 or.5
+h(tg,10)local tgst=ui(tg,on and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80))tgst.Transparency=on and.3 or.5
 local tggl=glow(tg,Color3.fromRGB(80,120,200),25)tggl.ImageTransparency=on and.8 or 1
-g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[icon]or e.Check,ImageColor3=Color3.fromRGB(100,150,255),Parent=tg})
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[ic]or e.Check,ImageColor3=Color3.fromRGB(100,150,255),Parent=tg})
 g("TextLabel",{Size=UDim2.new(1,-110,1,0),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Toggle",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=tg})
 local sw=g("Frame",{Size=UDim2.new(0,52,0,28),Position=UDim2.new(1,-66,0.5,-14),BackgroundColor3=on and Color3.fromRGB(80,120,200)or Color3.fromRGB(35,40,50),Parent=tg})
-h(sw,14)local swst=i(sw,on and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80))swst.Transparency=.5
+h(sw,14)
 local kn=g("Frame",{Size=UDim2.new(0,22,0,22),Position=on and UDim2.new(1,-25,0.5,-11)or UDim2.new(0,3,0.5,-11),BackgroundColor3=Color3.fromRGB(255,255,255),Parent=sw})
-h(kn,11)
-local kngl=glow(kn,Color3.fromRGB(255,255,255),15)kngl.ImageTransparency=on and.6 or 1
+h(kn,11)local kngl=glow(kn,Color3.fromRGB(255,255,255),15)kngl.ImageTransparency=on and.6 or 1
 local chk=g("ImageLabel",{Size=UDim2.new(0,12,0,12),Position=UDim2.new(0.5,-6,0.5,-6),BackgroundTransparency=1,Image=e.Check,ImageColor3=on and Color3.fromRGB(80,120,200)or Color3.fromRGB(60,70,90),ImageTransparency=on and 0 or 1,Parent=kn})
 local btn=g("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="",Parent=tg})
+table.insert(allelements,{frame=tg,name=text or"Toggle",tab=name})
 btn.MouseButton1Click:Connect(function()
 on=not on
 f(sw,{BackgroundColor3=on and Color3.fromRGB(80,120,200)or Color3.fromRGB(35,40,50)},.25,Enum.EasingStyle.Quart)
-f(swst,{Color=on and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80)},.2)
 f(kn,{Position=on and UDim2.new(1,-25,0.5,-11)or UDim2.new(0,3,0.5,-11)},.25,Enum.EasingStyle.Back)
 f(kngl,{ImageTransparency=on and.6 or 1},.25)
 f(chk,{ImageColor3=on and Color3.fromRGB(80,120,200)or Color3.fromRGB(60,70,90),ImageTransparency=on and 0 or 1},.2)
@@ -184,76 +158,126 @@ if callback then callback(on)end
 end)
 btn.MouseEnter:Connect(function()f(tg,{BackgroundColor3=Color3.fromRGB(25,30,40)},.2)end)
 btn.MouseLeave:Connect(function()f(tg,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)end)
-return{Set=function(v)on=v f(sw,{BackgroundColor3=on and Color3.fromRGB(80,120,200)or Color3.fromRGB(35,40,50)},.2)f(kn,{Position=on and UDim2.new(1,-25,0.5,-11)or UDim2.new(0,3,0.5,-11)},.2)f(chk,{ImageTransparency=on and 0 or 1},.2)f(tgst,{Color=on and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80)},.2)end,Get=function()return on end}
+return{Set=function(v)on=v f(sw,{BackgroundColor3=on and Color3.fromRGB(80,120,200)or Color3.fromRGB(35,40,50)},.2)f(kn,{Position=on and UDim2.new(1,-25,0.5,-11)or UDim2.new(0,3,0.5,-11)},.2)f(chk,{ImageTransparency=on and 0 or 1},.2)end,Get=function()return on end}
 end
-function t:Slider(text,icon,min,max,default,callback)
+function t:Slider(text,ic,min,max,default,callback)
 local val=default or min
 local sl=g("Frame",{Size=UDim2.new(1,-10,0,65),BackgroundColor3=Color3.fromRGB(20,24,32),Parent=tcont})
-h(sl,10)local slst=i(sl,Color3.fromRGB(50,60,80))
-g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0,12),BackgroundTransparency=1,Image=e[icon]or e.Settings,ImageColor3=Color3.fromRGB(100,150,255),Parent=sl})
+h(sl,10)local slst=ui(sl,Color3.fromRGB(50,60,80))
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0,12),BackgroundTransparency=1,Image=e[ic]or e.Slider,ImageColor3=Color3.fromRGB(100,150,255),Parent=sl})
 g("TextLabel",{Size=UDim2.new(1,-110,0,22),Position=UDim2.new(0,42,0,10),BackgroundTransparency=1,Text=text or"Slider",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=sl})
 local vlbl=g("TextLabel",{Size=UDim2.new(0,55,0,24),Position=UDim2.new(1,-69,0,10),BackgroundColor3=Color3.fromRGB(30,35,45),Text=tostring(val),TextColor3=Color3.fromRGB(100,150,255),TextSize=12,Font=Enum.Font.GothamBold,Parent=sl})
-h(vlbl,8)i(vlbl,Color3.fromRGB(60,80,120))
+h(vlbl,8)ui(vlbl,Color3.fromRGB(60,80,120))
 local bar=g("Frame",{Size=UDim2.new(1,-28,0,10),Position=UDim2.new(0,14,1,-22),BackgroundColor3=Color3.fromRGB(30,35,45),Parent=sl})
-h(bar,5)i(bar,Color3.fromRGB(50,60,80))
+h(bar,5)ui(bar,Color3.fromRGB(50,60,80))
 local fill=g("Frame",{Size=UDim2.new((val-min)/(max-min),0,1,0),BackgroundColor3=Color3.fromRGB(100,150,255),Parent=bar})
 h(fill,5)
 local fg=Instance.new("UIGradient",fill)fg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(100,150,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(150,100,255))}
 local fgl=glow(fill,Color3.fromRGB(100,150,255),15)fgl.ImageTransparency=.7
 local knob=g("Frame",{Size=UDim2.new(0,18,0,18),Position=UDim2.new((val-min)/(max-min),-9,0.5,-9),BackgroundColor3=Color3.fromRGB(255,255,255),ZIndex=5,Parent=bar})
 h(knob,9)local kgl=glow(knob,Color3.fromRGB(100,150,255),20)kgl.ImageTransparency=.6
-local sbtn=g("TextButton",{Size=UDim2.new(1,20,1,20),Position=UDim2.new(0,-10,0,-10),BackgroundTransparency=1,Text="",ZIndex=6,Parent=bar})
+table.insert(allelements,{frame=sl,name=text or"Slider",tab=name})
 local dragging=false
-local function upd(inp)
-local mx=inp.Position.X
+local function upd(x)
 local bx=bar.AbsolutePosition.X
 local bw=bar.AbsoluteSize.X
-local pct=math.clamp((mx-bx)/bw,0,1)
+local pct=math.clamp((x-bx)/bw,0,1)
 val=math.floor(min+(max-min)*pct)
 vlbl.Text=tostring(val)
-f(fill,{Size=UDim2.new(pct,0,1,0)},.05)
-f(knob,{Position=UDim2.new(pct,-9,0.5,-9)},.05)
+fill.Size=UDim2.new(pct,0,1,0)
+knob.Position=UDim2.new(pct,-9,0.5,-9)
 if callback then callback(val)end
 end
-sbtn.MouseButton1Down:Connect(function(x,y)dragging=true f(knob,{Size=UDim2.new(0,22,0,22)},.15,Enum.EasingStyle.Back)f(kgl,{ImageTransparency=.4},.15)f(slst,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.15)end)
+bar.InputBegan:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then dragging=true upd(inp.Position.X)f(knob,{Size=UDim2.new(0,22,0,22)},.15,Enum.EasingStyle.Back)f(kgl,{ImageTransparency=.4},.15)f(slst,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.15)end end)
+bar.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false f(knob,{Size=UDim2.new(0,18,0,18)},.15)f(kgl,{ImageTransparency=.6},.15)f(slst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.15)end end)
+b.InputChanged:Connect(function(inp)if dragging and inp.UserInputType==Enum.UserInputType.MouseMovement then upd(inp.Position.X)end end)
 b.InputEnded:Connect(function(inp)if inp.UserInputType==Enum.UserInputType.MouseButton1 and dragging then dragging=false f(knob,{Size=UDim2.new(0,18,0,18)},.15)f(kgl,{ImageTransparency=.6},.15)f(slst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.15)end end)
-b.InputChanged:Connect(function(inp)if dragging and inp.UserInputType==Enum.UserInputType.MouseMovement then upd(inp)end end)
-sbtn.MouseEnter:Connect(function()f(sl,{BackgroundColor3=Color3.fromRGB(25,30,40)},.2)end)
-sbtn.MouseLeave:Connect(function()if not dragging then f(sl,{BackgroundColor3=Color3.fromRGB(20,24,32)},.2)end end)
-return{Set=function(v)val=v vlbl.Text=tostring(v)local pct=(v-min)/(max-min)f(fill,{Size=UDim2.new(pct,0,1,0)},.2)f(knob,{Position=UDim2.new(pct,-9,0.5,-9)},.2)end,Get=function()return val end}
+return{Set=function(v)val=v vlbl.Text=tostring(v)local pct=(v-min)/(max-min)fill.Size=UDim2.new(pct,0,1,0)knob.Position=UDim2.new(pct,-9,0.5,-9)end,Get=function()return val end}
 end
-function t:Dropdown(text,icon,options,default,callback)
+function t:Dropdown(text,ic,options,default,callback)
 local sel=default or options[1]or""
 local expanded=false
 local dd=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),ClipsDescendants=true,Parent=tcont})
-h(dd,10)local ddst=i(dd,Color3.fromRGB(50,60,80))
-g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0,12),BackgroundTransparency=1,Image=e[icon]or e.Settings,ImageColor3=Color3.fromRGB(100,150,255),Parent=dd})
+h(dd,10)local ddst=ui(dd,Color3.fromRGB(50,60,80))
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0,12),BackgroundTransparency=1,Image=e[ic]or e.Dropdown,ImageColor3=Color3.fromRGB(100,150,255),Parent=dd})
 g("TextLabel",{Size=UDim2.new(1,-150,0,44),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Dropdown",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=dd})
 local selv=g("TextLabel",{Size=UDim2.new(0,80,0,26),Position=UDim2.new(1,-115,0,9),BackgroundColor3=Color3.fromRGB(30,35,45),Text=sel,TextColor3=Color3.fromRGB(150,170,220),TextSize=11,Font=Enum.Font.Gotham,Parent=dd})
 h(selv,8)
-local arr=g("ImageLabel",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(1,-28,0,15),BackgroundTransparency=1,Image="rbxassetid://7733717504",ImageColor3=Color3.fromRGB(100,150,255),Rotation=90,Parent=dd})
+local arr=g("ImageLabel",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(1,-28,0,15),BackgroundTransparency=1,Image=e.Arrow,ImageColor3=Color3.fromRGB(100,150,255),Rotation=90,Parent=dd})
 local optc=g("Frame",{Size=UDim2.new(1,-10,0,0),Position=UDim2.new(0,5,0,48),BackgroundTransparency=1,Parent=dd})
-local optl=g("UIListLayout",{Padding=UDim.new(0,4),SortOrder=Enum.SortOrder.LayoutOrder,Parent=optc})
-for idx,opt in ipairs(options)do
+g("UIListLayout",{Padding=UDim.new(0,4),SortOrder=Enum.SortOrder.LayoutOrder,Parent=optc})
+table.insert(allelements,{frame=dd,name=text or"Dropdown",tab=name})
+for _,opt in ipairs(options)do
 local ob=g("TextButton",{Size=UDim2.new(1,0,0,32),BackgroundColor3=Color3.fromRGB(25,30,40),Text="",AutoButtonColor=false,Parent=optc})
 h(ob,8)
-g("TextLabel",{Size=UDim2.new(1,-20,1,0),Position=UDim2.new(0,10,0,0),BackgroundTransparency=1,Text=opt,TextColor3=Color3.fromRGB(180,190,220),TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,Parent=ob})
+local oic=g("ImageLabel",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(0,10,0.5,-7),BackgroundTransparency=1,Image=e.Check,ImageColor3=Color3.fromRGB(100,150,255),ImageTransparency=sel==opt and 0 or 1,Parent=ob})
+g("TextLabel",{Size=UDim2.new(1,-40,1,0),Position=UDim2.new(0,30,0,0),BackgroundTransparency=1,Text=opt,TextColor3=Color3.fromRGB(180,190,220),TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,Parent=ob})
 ob.MouseEnter:Connect(function()f(ob,{BackgroundColor3=Color3.fromRGB(60,90,150)},.15)end)
 ob.MouseLeave:Connect(function()f(ob,{BackgroundColor3=Color3.fromRGB(25,30,40)},.15)end)
-ob.MouseButton1Click:Connect(function()sel=opt selv.Text=opt expanded=false f(dd,{Size=UDim2.new(1,-10,0,44)},.25,Enum.EasingStyle.Back)f(arr,{Rotation=90},.2)if callback then callback(sel)end end)
+ob.MouseButton1Click:Connect(function()
+for _,c in pairs(optc:GetChildren())do if c:IsA("TextButton")then local ci=c:FindFirstChild("ImageLabel")if ci then f(ci,{ImageTransparency=1},.15)end end end
+f(oic,{ImageTransparency=0},.15)
+sel=opt selv.Text=opt expanded=false f(dd,{Size=UDim2.new(1,-10,0,44)},.25,Enum.EasingStyle.Back)f(arr,{Rotation=90},.2)f(ddst,{Color=Color3.fromRGB(50,60,80)},.2)if callback then callback(sel)end
+end)
 end
 local hbtn=g("TextButton",{Size=UDim2.new(1,0,0,44),BackgroundTransparency=1,Text="",Parent=dd})
-hbtn.MouseButton1Click:Connect(function()
-expanded=not expanded
-local h=expanded and(48+#options*36)or 44
-f(dd,{Size=UDim2.new(1,-10,0,h)},.3,Enum.EasingStyle.Back)
-f(arr,{Rotation=expanded and 270 or 90},.25)
-f(ddst,{Color=expanded and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80)},.2)
-end)
+hbtn.MouseButton1Click:Connect(function()expanded=not expanded local ht=expanded and(48+#options*36)or 44 f(dd,{Size=UDim2.new(1,-10,0,ht)},.3,Enum.EasingStyle.Back)f(arr,{Rotation=expanded and 270 or 90},.25)f(ddst,{Color=expanded and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80)},.2)end)
 return{Set=function(v)sel=v selv.Text=v end,Get=function()return sel end}
+end
+function t:MultiDropdown(text,ic,options,defaults,callback)
+local selected=defaults or{}
+local expanded=false
+local dd=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),ClipsDescendants=true,Parent=tcont})
+h(dd,10)local ddst=ui(dd,Color3.fromRGB(50,60,80))
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0,12),BackgroundTransparency=1,Image=e[ic]or e.List,ImageColor3=Color3.fromRGB(100,150,255),Parent=dd})
+g("TextLabel",{Size=UDim2.new(1,-150,0,44),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Multi Select",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=dd})
+local selv=g("TextLabel",{Size=UDim2.new(0,80,0,26),Position=UDim2.new(1,-115,0,9),BackgroundColor3=Color3.fromRGB(30,35,45),Text=#selected.." selected",TextColor3=Color3.fromRGB(150,170,220),TextSize=10,Font=Enum.Font.Gotham,Parent=dd})
+h(selv,8)
+local arr=g("ImageLabel",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(1,-28,0,15),BackgroundTransparency=1,Image=e.Arrow,ImageColor3=Color3.fromRGB(100,150,255),Rotation=90,Parent=dd})
+local optc=g("Frame",{Size=UDim2.new(1,-10,0,0),Position=UDim2.new(0,5,0,48),BackgroundTransparency=1,Parent=dd})
+g("UIListLayout",{Padding=UDim.new(0,4),SortOrder=Enum.SortOrder.LayoutOrder,Parent=optc})
+table.insert(allelements,{frame=dd,name=text or"MultiDropdown",tab=name})
+local function hasVal(t,v)for _,x in pairs(t)do if x==v then return true end end return false end
+local function remVal(t,v)for i,x in pairs(t)do if x==v then table.remove(t,i)return end end end
+for _,opt in ipairs(options)do
+local isOn=hasVal(selected,opt)
+local ob=g("TextButton",{Size=UDim2.new(1,0,0,32),BackgroundColor3=Color3.fromRGB(25,30,40),Text="",AutoButtonColor=false,Parent=optc})
+h(ob,8)
+local obox=g("Frame",{Size=UDim2.new(0,18,0,18),Position=UDim2.new(0,8,0.5,-9),BackgroundColor3=isOn and Color3.fromRGB(80,120,200)or Color3.fromRGB(40,45,55),Parent=ob})
+h(obox,5)
+local ochk=g("ImageLabel",{Size=UDim2.new(0,12,0,12),Position=UDim2.new(0.5,-6,0.5,-6),BackgroundTransparency=1,Image=e.Check,ImageColor3=Color3.fromRGB(255,255,255),ImageTransparency=isOn and 0 or 1,Parent=obox})
+g("TextLabel",{Size=UDim2.new(1,-40,1,0),Position=UDim2.new(0,32,0,0),BackgroundTransparency=1,Text=opt,TextColor3=Color3.fromRGB(180,190,220),TextSize=12,Font=Enum.Font.Gotham,TextXAlignment=Enum.TextXAlignment.Left,Parent=ob})
+ob.MouseEnter:Connect(function()f(ob,{BackgroundColor3=Color3.fromRGB(35,42,55)},.15)end)
+ob.MouseLeave:Connect(function()f(ob,{BackgroundColor3=Color3.fromRGB(25,30,40)},.15)end)
+ob.MouseButton1Click:Connect(function()
+local now=hasVal(selected,opt)
+if now then remVal(selected,opt)else table.insert(selected,opt)end
+local newOn=not now
+f(obox,{BackgroundColor3=newOn and Color3.fromRGB(80,120,200)or Color3.fromRGB(40,45,55)},.2)
+f(ochk,{ImageTransparency=newOn and 0 or 1},.2)
+selv.Text=#selected.." selected"
+if callback then callback(selected)end
+end)
+end
+local hbtn=g("TextButton",{Size=UDim2.new(1,0,0,44),BackgroundTransparency=1,Text="",Parent=dd})
+hbtn.MouseButton1Click:Connect(function()expanded=not expanded local ht=expanded and(48+#options*36)or 44 f(dd,{Size=UDim2.new(1,-10,0,ht)},.3,Enum.EasingStyle.Back)f(arr,{Rotation=expanded and 270 or 90},.25)f(ddst,{Color=expanded and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80)},.2)end)
+return{Set=function(v)selected=v selv.Text=#selected.." selected"end,Get=function()return selected end}
+end
+function t:Input(text,ic,placeholder,callback)
+local inp=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),Parent=tcont})
+h(inp,10)local ist=ui(inp,Color3.fromRGB(50,60,80))
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[ic]or e.Search,ImageColor3=Color3.fromRGB(100,150,255),Parent=inp})
+g("TextLabel",{Size=UDim2.new(0,80,1,0),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Input",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=inp})
+local tb=g("TextBox",{Size=UDim2.new(1,-150,0,28),Position=UDim2.new(0,125,0.5,-14),BackgroundColor3=Color3.fromRGB(30,35,45),Text="",PlaceholderText=placeholder or"Enter...",TextColor3=Color3.fromRGB(220,230,255),PlaceholderColor3=Color3.fromRGB(80,90,120),TextSize=12,Font=Enum.Font.Gotham,ClearTextOnFocus=false,Parent=inp})
+h(tb,8)local tbst=ui(tb,Color3.fromRGB(50,60,80))
+table.insert(allelements,{frame=inp,name=text or"Input",tab=name})
+tb.Focused:Connect(function()f(tbst,{Color=Color3.fromRGB(100,150,255)},.2)f(ist,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.2)end)
+tb.FocusLost:Connect(function(enter)f(tbst,{Color=Color3.fromRGB(50,60,80)},.2)f(ist,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)if enter and callback then callback(tb.Text)end end)
+return{Set=function(v)tb.Text=v end,Get=function()return tb.Text end}
 end
 function t:Label(text)
 local lb=g("TextLabel",{Size=UDim2.new(1,-10,0,28),BackgroundTransparency=1,Text=text or"Label",TextColor3=Color3.fromRGB(100,120,160),TextSize=12,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=tcont})
+table.insert(allelements,{frame=lb,name=text or"Label",tab=name})
 return lb
 end
 function t:Separator()
@@ -262,20 +286,54 @@ h(sp,1)
 local spg=Instance.new("UIGradient",sp)spg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(40,50,70)),ColorSequenceKeypoint.new(.5,Color3.fromRGB(100,150,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(40,50,70))}spg.Transparency=NumberSequence.new{NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(.5,0),NumberSequenceKeypoint.new(1,1)}
 return sp
 end
-function t:Input(text,icon,placeholder,callback)
-local inp=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),Parent=tcont})
-h(inp,10)local ist=i(inp,Color3.fromRGB(50,60,80))
-g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[icon]or e.Search,ImageColor3=Color3.fromRGB(100,150,255),Parent=inp})
-g("TextLabel",{Size=UDim2.new(0,80,1,0),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Input",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=inp})
-local tb=g("TextBox",{Size=UDim2.new(1,-150,0,28),Position=UDim2.new(0,125,0.5,-14),BackgroundColor3=Color3.fromRGB(30,35,45),Text="",PlaceholderText=placeholder or"Enter...",TextColor3=Color3.fromRGB(220,230,255),PlaceholderColor3=Color3.fromRGB(80,90,120),TextSize=12,Font=Enum.Font.Gotham,ClearTextOnFocus=false,Parent=inp})
-h(tb,8)local tbst=i(tb,Color3.fromRGB(50,60,80))
-tb.Focused:Connect(function()f(tbst,{Color=Color3.fromRGB(100,150,255)},.2)f(ist,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.2)end)
-tb.FocusLost:Connect(function(enter)f(tbst,{Color=Color3.fromRGB(50,60,80)},.2)f(ist,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)if enter and callback then callback(tb.Text)end end)
-return{Set=function(v)tb.Text=v end,Get=function()return tb.Text end}
+function t:Keybind(text,ic,default,callback)
+local key=default or Enum.KeyCode.E
+local listening=false
+local kb=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),Parent=tcont})
+h(kb,10)local kbst=ui(kb,Color3.fromRGB(50,60,80))
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0.5,-10),BackgroundTransparency=1,Image=e[ic]or e.Settings,ImageColor3=Color3.fromRGB(100,150,255),Parent=kb})
+g("TextLabel",{Size=UDim2.new(1,-130,1,0),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Keybind",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=kb})
+local kbtn=g("TextButton",{Size=UDim2.new(0,70,0,28),Position=UDim2.new(1,-84,0.5,-14),BackgroundColor3=Color3.fromRGB(30,35,45),Text=key.Name,TextColor3=Color3.fromRGB(150,170,220),TextSize=11,Font=Enum.Font.GothamBold,Parent=kb})
+h(kbtn,8)local kbnst=ui(kbtn,Color3.fromRGB(50,60,80))
+table.insert(allelements,{frame=kb,name=text or"Keybind",tab=name})
+kbtn.MouseButton1Click:Connect(function()listening=true kbtn.Text="..."f(kbnst,{Color=Color3.fromRGB(100,150,255)},.2)f(kbst,{Color=Color3.fromRGB(100,150,255),Transparency=.3},.2)end)
+b.InputBegan:Connect(function(inp,gpe)
+if listening and inp.UserInputType==Enum.UserInputType.Keyboard then
+key=inp.KeyCode kbtn.Text=key.Name listening=false
+f(kbnst,{Color=Color3.fromRGB(50,60,80)},.2)f(kbst,{Color=Color3.fromRGB(50,60,80),Transparency=.5},.2)
+if callback then callback(key)end
+end
+end)
+return{Set=function(v)key=v kbtn.Text=v.Name end,Get=function()return key end}
+end
+function t:ColorPicker(text,ic,default,callback)
+local col=default or Color3.fromRGB(100,150,255)
+local expanded=false
+local cp=g("Frame",{Size=UDim2.new(1,-10,0,44),BackgroundColor3=Color3.fromRGB(20,24,32),ClipsDescendants=true,Parent=tcont})
+h(cp,10)local cpst=ui(cp,Color3.fromRGB(50,60,80))
+g("ImageLabel",{Size=UDim2.new(0,20,0,20),Position=UDim2.new(0,14,0,12),BackgroundTransparency=1,Image=e[ic]or e.Eye,ImageColor3=Color3.fromRGB(100,150,255),Parent=cp})
+g("TextLabel",{Size=UDim2.new(1,-130,0,44),Position=UDim2.new(0,42,0,0),BackgroundTransparency=1,Text=text or"Color",TextColor3=Color3.fromRGB(220,230,255),TextSize=13,Font=Enum.Font.GothamBold,TextXAlignment=Enum.TextXAlignment.Left,Parent=cp})
+local preview=g("Frame",{Size=UDim2.new(0,50,0,26),Position=UDim2.new(1,-64,0,9),BackgroundColor3=col,Parent=cp})
+h(preview,8)ui(preview,Color3.fromRGB(60,80,120))
+local colors={Color3.fromRGB(255,0,0),Color3.fromRGB(255,127,0),Color3.fromRGB(255,255,0),Color3.fromRGB(0,255,0),Color3.fromRGB(0,255,255),Color3.fromRGB(0,127,255),Color3.fromRGB(0,0,255),Color3.fromRGB(127,0,255),Color3.fromRGB(255,0,255),Color3.fromRGB(255,255,255),Color3.fromRGB(180,180,180),Color3.fromRGB(100,100,100),Color3.fromRGB(50,50,50),Color3.fromRGB(0,0,0)}
+local grid=g("Frame",{Size=UDim2.new(1,-20,0,60),Position=UDim2.new(0,10,0,50),BackgroundTransparency=1,Parent=cp})
+g("UIGridLayout",{CellSize=UDim2.new(0,36,0,26),CellPadding=UDim2.new(0,6,0,6),Parent=grid})
+table.insert(allelements,{frame=cp,name=text or"ColorPicker",tab=name})
+for _,c in ipairs(colors)do
+local cb=g("TextButton",{Size=UDim2.new(0,36,0,26),BackgroundColor3=c,Text="",Parent=grid})
+h(cb,6)
+cb.MouseButton1Click:Connect(function()col=c preview.BackgroundColor3=c if callback then callback(c)end end)
+cb.MouseEnter:Connect(function()f(cb,{Size=UDim2.new(0,38,0,28)},.1,Enum.EasingStyle.Back)end)
+cb.MouseLeave:Connect(function()f(cb,{Size=UDim2.new(0,36,0,26)},.1)end)
+end
+local hbtn=g("TextButton",{Size=UDim2.new(1,0,0,44),BackgroundTransparency=1,Text="",Parent=cp})
+hbtn.MouseButton1Click:Connect(function()expanded=not expanded f(cp,{Size=UDim2.new(1,-10,0,expanded and 120 or 44)},.3,Enum.EasingStyle.Back)f(cpst,{Color=expanded and Color3.fromRGB(100,150,255)or Color3.fromRGB(50,60,80)},.2)end)
+return{Set=function(v)col=v preview.BackgroundColor3=v end,Get=function()return col end}
 end
 return t
 end
 function w:Notify(title,text,dur,icon)return j:Notify(title,text,dur,icon)end
+function w:Destroy()sg:Destroy()end
 return w
 end
 return j
