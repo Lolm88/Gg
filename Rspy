@@ -1,9 +1,14 @@
+-- MirageUI v3.0 - Advanced Roblox UI Library
+-- Enhanced with performance optimizations, advanced visuals, and professional features
+
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Advanced Icon Library
 local Icons = {
     Home = "rbxassetid://7733960981",
     Settings = "rbxassetid://7734053495",
@@ -786,7 +791,7 @@ function MirageUI:Window(Title, Size, Position)
             }
         end
 
-        
+        -- Toggle Switch (Screenshot Style)
         function TabAPI:Toggle(Text, Icon, Default, Callback)
             local IsOn = Default or false
             
