@@ -1256,196 +1256,193 @@ function MirageUI:Window(title)
         end
 
         -- MultiDropdown element
-        function TabAPI:MultiDropdown(text, multiIcon, options, defaults, callback)
-            local Selected = defaults or {}
-            local IsExpanded = false
+        
+    function TabAPI:MultiDropdown(text, multiIcon, options, defaults, callback)
+    local selected = defaults or {}
+    local expanded = false
+    
+    local dropdownFrame = CreateInstance("Frame", {
+        Size = UDim2.new(1, -8, 0, 40),
+        BackgroundColor3 = Color3.fromRGB(20, 24, 32),
+        ClipsDescendants = true,
+        Parent = TabContent
+    })
+    AddCorner(dropdownFrame, 8)
+    local dropdownStroke = AddStroke(dropdownFrame, Color3.fromRGB(50, 60, 80))
+
+    CreateInstance("ImageLabel", {
+        Size = UDim2.new(0, 18, 0, 18),
+        Position = UDim2.new(0, 12, 0, 11),
+        BackgroundTransparency = 1,
+        Image = Icons[icon] or Icons.List,
+        ImageColor3 = Color3.fromRGB(100, 150, 255),
+        Parent = dropdownFrame
+    })
+
+    CreateInstance("TextLabel", {
+        Size = UDim2.new(1, -140, 0, 40),
+        Position = UDim2.new(0, 38, 0, 0),
+        BackgroundTransparency = 1,
+        Text = text or "Multi Select",
+        TextColor3 = Color3.fromRGB(220, 230, 255),
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = dropdownFrame
+    })
+
+    local selectedCount = CreateInstance("TextLabel", {
+        Size = UDim2.new(0, 70, 0, 22),
+        Position = UDim2.new(1, -80, 0, 9),
+        BackgroundColor3 = Color3.fromRGB(30, 35, 45),
+        Text = #selected .. " selected",
+        TextColor3 = Color3.fromRGB(150, 170, 220),
+        TextSize = 9,
+        Font = Enum.Font.Gotham,
+        Parent = dropdownFrame
+    })
+    AddCorner(selectedCount, 6)
+
+    local arrow = CreateInstance("ImageLabel", {
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new(1, -26, 0, 14),
+        BackgroundTransparency = 1,
+        Image = Icons.Arrow,
+        ImageColor3 = Color3.fromRGB(100, 150, 255),
+        Rotation = 90,
+        Parent = dropdownFrame
+    })
+
+    local optionsContainer = CreateInstance("Frame", {
+        Size = UDim2.new(1, -10, 0, 0),
+        Position = UDim2.new(0, 5, 0, 44),
+        BackgroundTransparency = 1,
+        Parent = dropdownFrame
+    })
+    CreateInstance("UIListLayout", {
+        Padding = UDim.new(0, 3),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = optionsContainer
+    })
+
+    table.insert(AllElements, {frame = dropdownFrame, name = text or "MultiDropdown", tab = name})
+
+    local function HasValue(table, value)
+        for _, v in pairs(table) do
+            if v == value then
+                return true
+            end
+        end
+        return false
+    end
+
+    local function RemoveValue(table, value)
+        for i = #table, 1, -1 do
+            if table[i] == value then
+                table.remove(table, i)
+                return
+            end
+        end
+    end
+
+    for _, option in ipairs(options) do
+        local isSelected = HasValue(selected, option)
+        
+        local optionButton = CreateInstance("TextButton", {
+            Size = UDim2.new(1, 0, 0, 28),
+            BackgroundColor3 = Color3.fromRGB(25, 30, 40),
+            Text = "",
+            AutoButtonColor = false,
+            Parent = optionsContainer
+        })
+        AddCorner(optionButton, 6)
+
+        local optionBox = CreateInstance("Frame", {
+            Size = UDim2.new(0, 16, 0, 16),
+            Position = UDim2.new(0, 6, 0.5, -8),
+            BackgroundColor3 = isSelected and Color3.fromRGB(80, 120, 200) or Color3.fromRGB(40, 45, 55),
+            Parent = optionButton
+        })
+        AddCorner(optionBox, 4)
+
+        local optionCheck = CreateInstance("ImageLabel", {
+            Size = UDim2.new(0, 10, 0, 10),
+            Position = UDim2.new(0.5, -5, 0.5, -5),
+            BackgroundTransparency = 1,
+            Image = Icons.Check,
+            ImageColor3 = Color3.fromRGB(255, 255, 255),
+            ImageTransparency = isSelected and 0 or 1,
+            Parent = optionBox
+        })
+
+        CreateInstance("TextLabel", {
+            Size = UDim2.new(1, -30, 1, 0),
+            Position = UDim2.new(0, 28, 0, 0),
+            BackgroundTransparency = 1,
+            Text = option,
+            TextColor3 = Color3.fromRGB(180, 190, 220),
+            TextSize = 11,
+            Font = Enum.Font.Gotham,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = optionButton
+        })
+
+        optionButton.MouseEnter:Connect(function()
+            CreateTween(optionButton, {BackgroundColor3 = Color3.fromRGB(35, 42, 55)}, 0.15)
+        end)
+
+        optionButton.MouseLeave:Connect(function()
+            CreateTween(optionButton, {BackgroundColor3 = Color3.fromRGB(25, 30, 40)}, 0.15)
+        end)
+
+        optionButton.MouseButton1Click:Connect(function()
+            local currentlySelected = HasValue(selected, option)
+            if currentlySelected then
+                RemoveValue(selected, option)
+            else
+                table.insert(selected, option)
+            end
             
-            local Dropdown = CreateInstance("Frame", {
-                Size = UDim2.new(1, -8, 0, 40),
-                BackgroundColor3 = Color3.fromRGB(20, 24, 32),
-                ClipsDescendants = true,
-                Parent = TabContent
-            })
-            AddCorner(Dropdown, 8)
-            local DropdownStroke = AddStroke(Dropdown, Color3.fromRGB(50, 60, 80))
-
-            CreateInstance("ImageLabel", {
-                Size = UDim2.new(0, 18, 0, 18),
-                Position = UDim2.new(0, 12, 0, 11),
-                BackgroundTransparency = 1,
-                Image = Icons[multiIcon] or Icons.List,
-                ImageColor3 = Color3.fromRGB(100, 150, 255),
-                Parent = Dropdown
-            })
-
-            CreateInstance("TextLabel", {
-                Size = UDim2.new(1, -140, 0, 40),
-                Position = UDim2.new(0, 38, 0, 0),
-                BackgroundTransparency = 1,
-                Text = text or "Multi Select",
-                TextColor3 = Color3.fromRGB(220, 230, 255),
-                TextSize = 12,
-                Font = Enum.Font.GothamBold,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Parent = Dropdown
-            })
-
-            local SelectedCount = CreateInstance("TextLabel", {
-                Size = UDim2.new(0, 70, 0, 22),
-                Position = UDim2.new(1, -80, 0, 9),
-                BackgroundColor3 = Color3.fromRGB(30, 35, 45),
-                Text = #Selected .. " selected",
-                TextColor3 = Color3.fromRGB(150, 170, 220),
-                TextSize = 9,
-                Font = Enum.Font.Gotham,
-                Parent = Dropdown
-            })
-            AddCorner(SelectedCount, 6)
-
-            local Arrow = CreateInstance("ImageLabel", {
-                Size = UDim2.new(0, 12, 0, 12),
-                Position = UDim2.new(1, -26, 0, 14),
-                BackgroundTransparency = 1,
-                Image = Icons.Arrow,
-                ImageColor3 = Color3.fromRGB(100, 150, 255),
-                Rotation = 90,
-                Parent = Dropdown
-            })
-
-            local OptionsContainer = CreateInstance("Frame", {
-                Size = UDim2.new(1, -10, 0, 0),
-                Position = UDim2.new(0, 5, 0, 44),
-                BackgroundTransparency = 1,
-                Parent = Dropdown
-            })
-            CreateInstance("UIListLayout", {
-                Padding = UDim.new(0, 3),
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                Parent = OptionsContainer
-            })
-
-            table.insert(AllElements, {frame = Dropdown, name = text or "MultiDropdown", tab = name})
-
-            local function HasValue(table, value)
-                for _, v in pairs(table) do
-                    if v == value then
-                        return true
-                    end
-                end
-                return false
+            local nowSelected = not currentlySelected
+            CreateTween(optionBox, {
+                BackgroundColor3 = nowSelected and Color3.fromRGB(80, 120, 200) or Color3.fromRGB(40, 45, 55)
+            }, 0.2)
+            CreateTween(optionCheck, {
+                ImageTransparency = nowSelected and 0 or 1
+            }, 0.2)
+            selectedCount.Text = #selected .. " selected"
+            
+            if callback then
+                callback(selected)
             end
-
-            local function RemoveValue(t, v)
-    for i = #t, 1, -1 do
-        if t[i] == v then
-            table.remove(t, i)
-            return true
-        end
+        end)
     end
-    return false
+
+    local headerButton = CreateInstance("TextButton", {
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = dropdownFrame
+    })
+
+    headerButton.MouseButton1Click:Connect(function()
+        expanded = not expanded
+        local targetHeight = expanded and (44 + #options * 31) or 40
+        CreateTween(dropdownFrame, {Size = UDim2.new(1, -8, 0, targetHeight)}, 0.3, Enum.EasingStyle.Back)
+        CreateTween(arrow, {Rotation = expanded and 270 or 90}, 0.25)
+        CreateTween(dropdownStroke, {Color = expanded and Color3.fromRGB(100, 150, 255) or Color3.fromRGB(50, 60, 80)}, 0.2)
+    end)
+
+    return {
+        Set = function(values)
+            selected = values
+            selectedCount.Text = #selected .. " selected"
+        end,
+        Get = function()
+            return selected
+        end
+    }
 end
-                end
-            end
-
-            for _, option in ipairs(options) do
-                local IsSelected = HasValue(Selected, option)
-                
-                local OptionButton = CreateInstance("TextButton", {
-                    Size = UDim2.new(1, 0, 0, 28),
-                    BackgroundColor3 = Color3.fromRGB(25, 30, 40),
-                    Text = "",
-                    AutoButtonColor = false,
-                    Parent = OptionsContainer
-                })
-                AddCorner(OptionButton, 6)
-
-                local OptionBox = CreateInstance("Frame", {
-                    Size = UDim2.new(0, 16, 0, 16),
-                    Position = UDim2.new(0, 6, 0.5, -8),
-                    BackgroundColor3 = IsSelected and Color3.fromRGB(80, 120, 200) or Color3.fromRGB(40, 45, 55),
-                    Parent = OptionButton
-                })
-                AddCorner(OptionBox, 4)
-
-                local OptionCheck = CreateInstance("ImageLabel", {
-                    Size = UDim2.new(0, 10, 0, 10),
-                    Position = UDim2.new(0.5, -5, 0.5, -5),
-                    BackgroundTransparency = 1,
-                    Image = Icons.Check,
-                    ImageColor3 = Color3.fromRGB(255, 255, 255),
-                    ImageTransparency = IsSelected and 0 or 1,
-                    Parent = OptionBox
-                })
-
-                CreateInstance("TextLabel", {
-                    Size = UDim2.new(1, -30, 1, 0),
-                    Position = UDim2.new(0, 28, 0, 0),
-                    BackgroundTransparency = 1,
-                    Text = option,
-                    TextColor3 = Color3.fromRGB(180, 190, 220),
-                    TextSize = 11,
-                    Font = Enum.Font.Gotham,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = OptionButton
-                })
-
-                OptionButton.MouseEnter:Connect(function()
-                    CreateTween(OptionButton, {BackgroundColor3 = Color3.fromRGB(35, 42, 55)}, 0.15)
-                end)
-
-                OptionButton.MouseLeave:Connect(function()
-                    CreateTween(OptionButton, {BackgroundColor3 = Color3.fromRGB(25, 30, 40)}, 0.15)
-                end)
-
-                OptionButton.MouseButton1Click:Connect(function()
-                OptionButton.MouseButton1Click:Connect(function()
-    local CurrentlySelected = HasValue(Selected, option)
-    if CurrentlySelected then
-        RemoveValue(Selected, option)
-    else
-        table.insert(Selected, option)
-    end
-    
-    local NowSelected = not CurrentlySelected
-    CreateTween(OptionBox, {
-        BackgroundColor3 = NowSelected and Color3.fromRGB(80, 120, 200) or Color3.fromRGB(40, 45, 55)
-    }, 0.2)
-    CreateTween(OptionCheck, {
-        ImageTransparency = NowSelected and 0 or 1
-    }, 0.2)
-    SelectedCount.Text = #Selected .. " selected"
-    
-    if callback then
-        callback(Selected)
-    end
-end)
-            end
-
-            local HeaderButton = CreateInstance("TextButton", {
-                Size = UDim2.new(1, 0, 0, 40),
-                BackgroundTransparency = 1,
-                Text = "",
-                Parent = Dropdown
-            })
-
-            HeaderButton.MouseButton1Click:Connect(function()
-                IsExpanded = not IsExpanded
-                local targetHeight = IsExpanded and (44 + #options * 31) or 40
-                CreateTween(Dropdown, {Size = UDim2.new(1, -8, 0, targetHeight)}, 0.3, Enum.EasingStyle.Back)
-                CreateTween(Arrow, {Rotation = IsExpanded and 270 or 90}, 0.25)
-                CreateTween(DropdownStroke, {Color = IsExpanded and Color3.fromRGB(100, 150, 255) or Color3.fromRGB(50, 60, 80)}, 0.2)
-            end)
-
-            return {
-                Set = function(values)
-                    Selected = values
-                    SelectedCount.Text = #Selected .. " selected"
-                end,
-                Get = function()
-                    return Selected
-                end
-            }
-        end
 
         -- Input element
         function TabAPI:Input(text, inputIcon, placeholder, callback)
