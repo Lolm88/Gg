@@ -331,7 +331,7 @@ function MirageUI:Window(title)
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0.5, -9, 0.5, -9),
         BackgroundTransparency = 1,
-        Image = Icons.Star,
+        Image = Icons.Home,
         ImageColor3 = Color3.fromRGB(255, 255, 255),
         Parent = Logo
     })
@@ -409,7 +409,7 @@ function MirageUI:Window(title)
         Size = UDim2.new(0, 14, 0, 14),
         Position = UDim2.new(0.5, -7, 0.5, -7),
         BackgroundTransparency = 1,
-        Image = Icons.X,
+        Image = Icons.Home,
         ImageColor3 = Color3.fromRGB(200, 100, 100),
         Parent = CloseButton
     })
