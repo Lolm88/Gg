@@ -1335,12 +1335,15 @@ function MirageUI:Window(title)
                 return false
             end
 
-            local function RemoveValue(table, value)
-                for i, v in pairs(table) do
-                    if v == value then
-                        table.remove(table, i)
-                        return
-                    end
+            local function RemoveValue(t, v)
+    for i = #t, 1, -1 do
+        if t[i] == v then
+            table.remove(t, i)
+            return true
+        end
+    end
+    return false
+end
                 end
             end
 
@@ -1395,26 +1398,27 @@ function MirageUI:Window(title)
                 end)
 
                 OptionButton.MouseButton1Click:Connect(function()
-                    local CurrentlySelected = HasValue(Selected, option)
-                    if CurrentlySelected then
-                        RemoveValue(Selected, option)
-                    else
-                        table.insert(Selected, option)
-                    end
-                    
-                    local NowSelected = not CurrentlySelected
-                    CreateTween(OptionBox, {
-                        BackgroundColor3 = NowSelected and Color3.fromRGB(80, 120, 200) or Color3.fromRGB(40, 45, 55)
-                    }, 0.2)
-                    CreateTween(OptionCheck, {
-                        ImageTransparency = NowSelected and 0 or 1
-                    }, 0.2)
-                    SelectedCount.Text = #Selected .. " selected"
-                    
-                    if callback then
-                        callback(Selected)
-                    end
-                end)
+                OptionButton.MouseButton1Click:Connect(function()
+    local CurrentlySelected = HasValue(Selected, option)
+    if CurrentlySelected then
+        RemoveValue(Selected, option)
+    else
+        table.insert(Selected, option)
+    end
+    
+    local NowSelected = not CurrentlySelected
+    CreateTween(OptionBox, {
+        BackgroundColor3 = NowSelected and Color3.fromRGB(80, 120, 200) or Color3.fromRGB(40, 45, 55)
+    }, 0.2)
+    CreateTween(OptionCheck, {
+        ImageTransparency = NowSelected and 0 or 1
+    }, 0.2)
+    SelectedCount.Text = #Selected .. " selected"
+    
+    if callback then
+        callback(Selected)
+    end
+end)
             end
 
             local HeaderButton = CreateInstance("TextButton", {
