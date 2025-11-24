@@ -1,1 +1,1790 @@
+-- MirageUI v2 - Expert Edition
+-- A polished, performance-focused Roblox UI library
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+-- ============================================================================
+-- THEME SYSTEM - Centralized styling configuration
+-- ============================================================================
+local Theme = {
+    Colors = {
+        Background = Color3.fromRGB(12, 14, 20),
+        Surface = Color3.fromRGB(15, 18, 25),
+        SurfaceHover = Color3.fromRGB(25, 30, 40),
+        Primary = Color3.fromRGB(100, 150, 255),
+        Secondary = Color3.fromRGB(150, 100, 255),
+        Text = Color3.fromRGB(240, 245, 255),
+        TextMuted = Color3.fromRGB(140, 150, 180),
+        TextDark = Color3.fromRGB(100, 120, 160),
+        Success = Color3.fromRGB(80, 200, 120),
+        Error = Color3.fromRGB(200, 100, 100),
+        Warning = Color3.fromRGB(255, 170, 0),
+        
+        Stroke = {
+            Normal = Color3.fromRGB(50, 60, 80),
+            Active = Color3.fromRGB(100, 150, 255),
+            Hover = Color3.fromRGB(80, 120, 200)
+        }
+    },
+    
+    Sizes = {
+        Corner = UDim.new(0, 8),
+        Stroke = 1.5,
+        
+        Button = {
+            Height = 40,
+            Icon = 18,
+            Corner = UDim.new(0, 8)
+        },
+        
+        Toggle = {
+            Height = 40,
+            SwitchWidth = 48,
+            SwitchHeight = 24,
+            Knob = 20
+        },
+        
+        Slider = {
+            Height = 45,
+            BarHeight = 5,
+            Handle = 14
+        },
+        
+        Input = {
+            Height = 36
+        },
+        
+        Tab = {
+            Width = 130,
+            Height = 36
+        }
+    },
+    
+    Animations = {
+        Speed = {
+            Fast = 0.15,
+            Normal = 0.25,
+            Smooth = 0.35,
+            Slow = 0.5
+        },
+        
+        Easing = {
+            Standard = Enum.EasingStyle.Quart,
+            Back = Enum.EasingStyle.Back,
+            Elastic = Enum.EasingStyle.Elastic,
+            Bounce = Enum.EasingStyle.Bounce
+        }
+    }
+}
+
+-- ============================================================================
+-- ICON LIBRARY - Enhanced with proper fallback system
+-- ============================================================================
+local Icons = {
+    Home = "rbxassetid://7733960981",
+    Settings = "rbxassetid://7734053495",
+    Chevron = "rbxassetid://7733946527",
+    Check = "rbxassetid://7733956081",
+    Close = "rbxassetid://7733764649",
+    Search = "rbxassetid://7733957424",
+    Slider = "rbxassetid://7733957768",
+    Dropdown = "rbxassetid://7733946527",
+    Keybind = "rbxassetid://7733956302",
+    Color = "rbxassetid://7733958935",
+    Plus = "rbxassetid://7733966381",
+    Minus = "rbxassetid://7733964353",
+    
+    -- Fallback icon for missing entries
+    Default = "rbxassetid://7733960981",
+    
+    Get = function(self, key)
+        return self[key] or self.Default
+    end
+}
+
+-- ============================================================================
+-- UTILITY CLASSES - Reusable components
+-- ============================================================================
+local ConnectionManager = {} do
+    ConnectionManager.__index = ConnectionManager
+    
+    function ConnectionManager.new()
+        return setmetatable({
+            Connections = {}
+        }, ConnectionManager)
+    end
+    
+    function ConnectionManager:Add(connection)
+        if typeof(connection) == "RBXScriptConnection" then
+            table.insert(self.Connections, connection)
+        end
+    end
+    
+    function ConnectionManager:Clean()
+        for _, conn in ipairs(self.Connections) do
+            if conn.Connected then
+                conn:Disconnect()
+            end
+        end
+        self.Connections = {}
+    end
+    
+    function ConnectionManager:Wrap(object, event, callback)
+        local conn = object[event]:Connect(callback)
+        self:Add(conn)
+        return conn
+    end
+end
+
+local TweenManager = {} do
+    TweenManager.__index = TweenManager
+    
+    function TweenManager.new()
+        local self = setmetatable({
+            ActiveTweens = {},
+            CleanupPending = {}
+        }, TweenManager)
+        
+        -- Auto-cleanup loop
+        RunService.Heartbeat:Connect(function()
+            for i = #self.CleanupPending, 1, -1 do
+                local tween = self.CleanupPending[i]
+                if tween and tween.Instance then
+                    tween:Destroy()
+                end
+                table.remove(self.CleanupPending, i)
+            end
+        end)
+        
+        return self
+    end
+    
+    function TweenManager:Create(object, tweenInfo, properties)
+        local tween = TweenService:Create(object, tweenInfo, properties)
+        local id = tostring(tick() .. math.random())
+        
+        tween.Completed:Connect(function()
+            table.insert(self.CleanupPending, tween)
+        end)
+        
+        tween:Play()
+        return tween
+    end
+    
+    function TweenManager:Quick(object, properties, duration)
+        return self:Create(object, TweenInfo.new(
+            duration or Theme.Animations.Speed.Normal,
+            Theme.Easing.Standard,
+            Enum.EasingDirection.Out
+        ), properties)
+    end
+    
+    function TweenManager:Smooth(object, properties, duration)
+        return self:Create(object, TweenInfo.new(
+            duration or Theme.Animations.Speed.Smooth,
+            Theme.Easing.Back,
+            Enum.EasingDirection.Out
+        ), properties)
+    end
+end
+
+local RippleEffect = {} do
+    RippleEffect.__index = RippleEffect
+    
+    function RippleEffect.new(button, color)
+        local self = setmetatable({}, RippleEffect)
+        self.Button = button
+        self.Color = color or Theme.Colors.Primary
+        self.TweenManager = TweenManager.new()
+        return self
+    end
+    
+    function RippleEffect:Trigger()
+        local ripple = Instance.new("Frame")
+        ripple.Name = "Ripple"
+        ripple.BorderSizePixel = 0
+        ripple.BackgroundColor3 = self.Color
+        ripple.BackgroundTransparency = 0.7
+        
+        local buttonSize = self.Button.AbsoluteSize
+        local maxSize = math.max(buttonSize.X, buttonSize.Y) * 2
+        
+        ripple.Size = UDim2.fromOffset(0, 0)
+        ripple.Position = UDim2.fromScale(0.5, 0.5)
+        ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0.5, 0)
+        corner.Parent = ripple
+        
+        ripple.ZIndex = 10
+        ripple.Parent = self.Button
+        
+        self.TweenManager:Quick(ripple, {
+            Size = UDim2.fromOffset(maxSize, maxSize),
+            BackgroundTransparency = 1
+        }, Theme.Animations.Speed.Fast).Completed:Connect(function()
+            ripple:Destroy()
+        end)
+    end
+end
+
+-- ============================================================================
+-- BASE COMPONENTS - Foundation for all UI elements
+-- ============================================================================
+local BaseComponent = {} do
+    BaseComponent.__index = BaseComponent
+    
+    function BaseComponent.new()
+        return setmetatable({
+            Connections = ConnectionManager.new(),
+            Tweens = TweenManager.new(),
+            Instance = nil
+        }, BaseComponent)
+    end
+    
+    function BaseComponent:Destroy()
+        self.Connections:Clean()
+        if self.Instance then
+            self.Instance:Destroy()
+        end
+    end
+end
+
+-- ============================================================================
+-- UI ELEMENTS - Individual component implementations
+-- ============================================================================
+local Notification = setmetatable({}, BaseComponent) do
+    Notification.__index = Notification
+    
+    function Notification.new(title, content, duration, iconType)
+        local self = setmetatable(BaseComponent.new(), Notification)
+        
+        local screen = CoreGui:FindFirstChild("MirageNotify") or Instance.new("ScreenGui")
+        screen.Name = "MirageNotify"
+        screen.ResetOnSpawn = false
+        screen.Parent = CoreGui
+        
+        self.Instance = screen
+        
+        -- Create notification frame
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 300, 0, 70)
+        frame.Position = UDim2.new(1, 320, 1, -100)
+        frame.BackgroundColor3 = Theme.Colors.Surface
+        frame.Parent = screen
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = frame
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Active
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Transparency = 0.5
+        stroke.Parent = frame
+        
+        -- Glow effect
+        local glow = Instance.new("ImageLabel")
+        glow.Size = UDim2.new(1, 35, 1, 35)
+        glow.Position = UDim2.new(0.5, -17.5, 0.5, -17.5)
+        glow.BackgroundTransparency = 1
+        glow.Image = "rbxassetid://5028857084"
+        glow.ImageColor3 = Theme.Colors.Primary
+        glow.ImageTransparency = 1
+        glow.ZIndex = -1
+        glow.Parent = frame
+        
+        -- Icon
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 24, 0, 24)
+        icon.Position = UDim2.new(0, 12, 0, 12)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons:Get(iconType)
+        icon.ImageColor3 = Theme.Colors.Primary
+        icon.Parent = frame
+        
+        -- Title
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Size = UDim2.new(1, -50, 0, 20)
+        titleLabel.Position = UDim2.new(0, 45, 0, 10)
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Text = title or "Notification"
+        titleLabel.TextColor3 = Theme.Colors.Text
+        titleLabel.TextSize = 14
+        titleLabel.Font = Enum.Font.GothamBold
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.Parent = frame
+        
+        -- Content
+        local contentLabel = Instance.new("TextLabel")
+        contentLabel.Size = UDim2.new(1, -50, 0, 16)
+        contentLabel.Position = UDim2.new(0, 45, 0, 32)
+        contentLabel.BackgroundTransparency = 1
+        contentLabel.Text = content or ""
+        contentLabel.TextColor3 = Theme.Colors.TextMuted
+        contentLabel.TextSize = 12
+        contentLabel.Font = Enum.Font.Gotham
+        contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+        contentLabel.TextTruncate = Enum.TextTruncate.AtEnd
+        contentLabel.Parent = frame
+        
+        -- Progress bar
+        local progressBg = Instance.new("Frame")
+        progressBg.Size = UDim2.new(1, -20, 0, 3)
+        progressBg.Position = UDim2.new(0, 10, 1, -10)
+        progressBg.BackgroundColor3 = Color3.fromRGB(35, 40, 50)
+        progressBg.Parent = frame
+        
+        local progressCorner = Instance.new("UICorner")
+        progressCorner.CornerRadius = UDim.new(0, 2)
+        progressCorner.Parent = progressBg
+        
+        local progressFill = Instance.new("Frame")
+        progressFill.Size = UDim2.new(1, 0, 1, 0)
+        progressFill.BackgroundColor3 = Theme.Colors.Primary
+        progressFill.Parent = progressBg
+        
+        local progressFillCorner = Instance.new("UICorner")
+        progressFillCorner.CornerRadius = UDim.new(0, 2)
+        progressFillCorner.Parent = progressFill
+        
+        local gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.Colors.Primary),
+            ColorSequenceKeypoint.new(1, Theme.Colors.Secondary)
+        })
+        gradient.Parent = progressFill
+        
+        -- Animate in
+        self.Tweens:Smooth(frame, {
+            Position = UDim2.new(1, -320, 1, -20)
+        }, Theme.Animations.Speed.Smooth)
+        
+        self.Tweens:Quick(glow, {
+            ImageTransparency = 0.7
+        })
+        
+        self.Tweens:Quick(icon, {
+            Rotation = 360
+        }, 0.5)
+        
+        -- Progress animation
+        task.spawn(function()
+            local displayTime = duration or 3
+            local steps = 100
+            for i = steps, 0, -1 do
+                local progress = i / steps
+                progressFill.Size = UDim2.new(progress, 0, 1, 0)
+                gradient.Rotation = (1 - progress) * 360
+                task.wait(displayTime / steps)
+            end
+            
+            -- Animate out
+            self.Tweens:Smooth(frame, {
+                Position = UDim2.new(1, 320, frame.Position.Y.Scale, frame.Position.Y.Offset),
+                BackgroundTransparency = 1
+            }, Theme.Animations.Speed.Fast, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            
+            self.Tweens:Quick(stroke, {Transparency = 1}, Theme.Animations.Speed.Fast)
+            self.Tweens:Quick(glow, {ImageTransparency = 1}, Theme.Animations.Speed.Fast)
+            
+            task.wait(Theme.Animations.Speed.Fast)
+            frame:Destroy()
+        end)
+        
+        return frame
+    end
+end
+
+local Window = setmetatable({}, BaseComponent) do
+    Window.__index = Window
+    
+    function Window.new(title)
+        local self = setmetatable(BaseComponent.new(), Window)
+        
+        -- Main ScreenGui
+        self.ScreenGui = Instance.new("ScreenGui")
+        self.ScreenGui.Name = "MirageUI"
+        self.ScreenGui.ResetOnSpawn = false
+        self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        self.ScreenGui.Parent = CoreGui
+        
+        -- Toggle button
+        self:CreateToggleButton()
+        
+        -- Main window frame
+        self.MainFrame = Instance.new("Frame")
+        self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
+        self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+        self.MainFrame.BackgroundColor3 = Theme.Colors.Background
+        self.MainFrame.Visible = false
+        self.MainFrame.ClipsDescendants = true
+        self.MainFrame.Parent = self.ScreenGui
+        
+        local mainCorner = Instance.new("UICorner")
+        mainCorner.CornerRadius = UDim.new(0, 12)
+        mainCorner.Parent = self.MainFrame
+        
+        local mainStroke = Instance.new("UIStroke")
+        mainStroke.Color = Theme.Colors.Stroke.Normal
+        mainStroke.Thickness = Theme.Sizes.Stroke
+        mainStroke.Parent = self.MainFrame
+        
+        local mainGlow = Instance.new("ImageLabel")
+        mainGlow.Size = UDim2.new(1, 50, 1, 50)
+        mainGlow.Position = UDim2.new(0.5, -25, 0.5, -25)
+        mainGlow.BackgroundTransparency = 1
+        mainGlow.Image = "rbxassetid://5028857084"
+        mainGlow.ImageColor3 = Theme.Colors.Primary
+        mainGlow.ImageTransparency = 1
+        mainGlow.ZIndex = -1
+        mainGlow.Parent = self.MainFrame
+        
+        -- Header
+        self:CreateHeader(title or "Mirage UI")
+        
+        -- Content containers
+        self:CreateContentContainers()
+        
+        -- State
+        self.IsOpen = false
+        self.CurrentTab = nil
+        self.TabData = {}
+        self.AllElements = {}
+        
+        -- Events
+        self:SetupWindowEvents()
+        
+        self.Instance = self.ScreenGui
+        return self
+    end
+    
+    function Window:CreateToggleButton()
+        self.ToggleButton = Instance.new("ImageButton")
+        self.ToggleButton.Size = UDim2.new(0, 45, 0, 45)
+        self.ToggleButton.Position = UDim2.new(0, 20, 0.5, -22)
+        self.ToggleButton.BackgroundColor3 = Theme.Colors.Surface
+        self.ToggleButton.Parent = self.ScreenGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = self.ToggleButton
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Active
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = self.ToggleButton
+        
+        local glow = Instance.new("ImageLabel")
+        glow.Size = UDim2.new(1, 30, 1, 30)
+        glow.Position = UDim2.new(0.5, -15, 0.5, -15)
+        glow.BackgroundTransparency = 1
+        glow.Image = "rbxassetid://5028857084"
+        glow.ImageColor3 = Theme.Colors.Primary
+        glow.ImageTransparency = 0.7
+        glow.ZIndex = -1
+        glow.Parent = self.ToggleButton
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 20, 0, 20)
+        icon.Position = UDim2.new(0.5, -10, 0.5, -10)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons.Home
+        icon.ImageColor3 = Theme.Colors.Primary
+        icon.Parent = self.ToggleButton
+        
+        -- Animations
+        local rotationConn = RunService.RenderStepped:Connect(function()
+            if icon and icon.Parent then
+                icon.Rotation = icon.Rotation + 1
+            end
+        end)
+        
+        local pulseConn = RunService.Heartbeat:Connect(function()
+            if glow and glow.Parent then
+                glow.ImageTransparency = 0.7 + math.sin(tick() * 3) * 0.1
+            end
+        end)
+        
+        self.Connections:Add(rotationConn)
+        self.Connections:Add(pulseConn)
+    end
+    
+    function Window:CreateHeader(title)
+        local header = Instance.new("Frame")
+        header.Size = UDim2.new(1, 0, 0, 50)
+        header.BackgroundColor3 = Color3.fromRGB(8, 10, 15)
+        header.Parent = self.MainFrame
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 12)
+        corner.Parent = header
+        
+        -- Gradient overlay
+        local overlay = Instance.new("Frame")
+        overlay.Size = UDim2.new(1, 0, 0, 15)
+        overlay.Position = UDim2.new(0, 0, 1, -15)
+        overlay.BackgroundColor3 = Color3.fromRGB(8, 10, 15)
+        overlay.Parent = header
+        
+        -- Animated line
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, 0, 0, 2)
+        line.Position = UDim2.new(0, 0, 1, 0)
+        line.BackgroundColor3 = Theme.Colors.Primary
+        line.Parent = header
+        
+        local lineGradient = Instance.new("UIGradient")
+        lineGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.Colors.Primary),
+            ColorSequenceKeypoint.new(0.5, Theme.Colors.Secondary),
+            ColorSequenceKeypoint.new(1, Theme.Colors.Primary)
+        })
+        lineGradient.Parent = line
+        
+        -- Animate gradient
+        local offsetConn = RunService.Heartbeat:Connect(function()
+            if lineGradient and lineGradient.Parent then
+                lineGradient.Offset = Vector2.new((lineGradient.Offset.X + 0.01) % 2 - 1, 0)
+            end
+        end)
+        self.Connections:Add(offsetConn)
+        
+        -- Logo
+        local logo = Instance.new("Frame")
+        logo.Size = UDim2.new(0, 32, 0, 32)
+        logo.Position = UDim2.new(0, 10, 0, 9)
+        logo.BackgroundColor3 = Theme.Colors.Primary
+        logo.Parent = header
+        
+        local logoCorner = Instance.new("UICorner")
+        logoCorner.CornerRadius = UDim.new(0, 8)
+        logoCorner.Parent = logo
+        
+        local logoGradient = Instance.new("UIGradient")
+        logoGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.Colors.Primary),
+            ColorSequenceKeypoint.new(1, Theme.Colors.Secondary)
+        })
+        logoGradient.Rotation = 45
+        logoGradient.Parent = logo
+        
+        -- Rotate logo
+        local logoConn = RunService.Heartbeat:Connect(function()
+            if logoGradient and logoGradient.Parent then
+                logoGradient.Rotation = logoGradient.Rotation + 1
+            end
+        end)
+        self.Connections:Add(logoConn)
+        
+        local logoIcon = Instance.new("ImageLabel")
+        logoIcon.Size = UDim2.new(0, 18, 0, 18)
+        logoIcon.Position = UDim2.new(0.5, -9, 0.5, -9)
+        logoIcon.BackgroundTransparency = 1
+        logoIcon.Image = Icons.Home
+        logoIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        logoIcon.Parent = logo
+        
+        -- Title
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Size = UDim2.new(0, 180, 0, 18)
+        titleLabel.Position = UDim2.new(0, 52, 0, 8)
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Text = title
+        titleLabel.TextColor3 = Theme.Colors.Text
+        titleLabel.TextSize = 15
+        titleLabel.Font = Enum.Font.GothamBold
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.Parent = header
+        
+        -- Subtitle
+        local subtitle = Instance.new("TextLabel")
+        subtitle.Size = UDim2.new(0, 180, 0, 12)
+        subtitle.Position = UDim2.new(0, 52, 0, 28)
+        subtitle.BackgroundTransparency = 1
+        subtitle.Text = "Leviiiiiiiii"
+        subtitle.TextColor3 = Theme.Colors.TextDark
+        subtitle.TextSize = 10
+        subtitle.Font = Enum.Font.Gotham
+        subtitle.TextXAlignment = Enum.TextXAlignment.Left
+        subtitle.Parent = header
+        
+        -- Search box
+        self:CreateSearchBox(header)
+        
+        -- Close button
+        self:CreateCloseButton(header)
+        
+        self.Header = header
+    end
+    
+    function Window:CreateSearchBox(parent)
+        local searchBox = Instance.new("Frame")
+        searchBox.Size = UDim2.new(0, 160, 0, 28)
+        searchBox.Position = UDim2.new(1, -170, 0, 11)
+        searchBox.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+        searchBox.Parent = parent
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = searchBox
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = searchBox
+        
+        local searchIcon = Instance.new("ImageLabel")
+        searchIcon.Size = UDim2.new(0, 14, 0, 14)
+        searchIcon.Position = UDim2.new(0, 8, 0.5, -7)
+        searchIcon.BackgroundTransparency = 1
+        searchIcon.Image = Icons.Search
+        searchIcon.ImageColor3 = Theme.Colors.TextDark
+        searchIcon.Parent = searchBox
+        
+        local textBox = Instance.new("TextBox")
+        textBox.Size = UDim2.new(1, -35, 1, 0)
+        textBox.Position = UDim2.new(0, 28, 0, 0)
+        textBox.BackgroundTransparency = 1
+        textBox.Text = ""
+        textBox.PlaceholderText = "Search..."
+        textBox.TextColor3 = Color3.fromRGB(220, 220, 255)
+        textBox.PlaceholderColor3 = Color3.fromRGB(80, 90, 120)
+        textBox.TextSize = 11
+        textBox.Font = Enum.Font.Gotham
+        textBox.TextXAlignment = Enum.TextXAlignment.Left
+        textBox.ClearTextOnFocus = false
+        textBox.Parent = searchBox
+        
+        -- Focus effects
+        self.Connections:Wrap(textBox, "Focused", function()
+            self.Tweens:Quick(stroke, {Color = Theme.Colors.Stroke.Active, Transparency = 0.2})
+            self.Tweens:Quick(searchBox, {BackgroundColor3 = Color3.fromRGB(25, 30, 40)})
+        end)
+        
+        self.Connections:Wrap(textBox, "FocusLost", function()
+            self.Tweens:Quick(stroke, {Color = Theme.Colors.Stroke.Normal, Transparency = 0.5})
+            self.Tweens:Quick(searchBox, {BackgroundColor3 = Color3.fromRGB(15, 15, 22)})
+        end)
+        
+        -- Search functionality (debounced)
+        local lastSearch = ""
+        self.Connections:Wrap(textBox, "TextChanged", function()
+            local currentText = textBox.Text
+            if currentText ~= lastSearch then
+                lastSearch = currentText
+                self:FilterElements(currentText)
+            end
+        end)
+        
+        self.SearchBox = textBox
+    end
+    
+    function Window:CreateCloseButton(parent)
+        local closeButton = Instance.new("TextButton")
+        closeButton.Size = UDim2.new(0, 28, 0, 28)
+        closeButton.Position = UDim2.new(1, -38, 0, 11)
+        closeButton.BackgroundColor3 = Color3.fromRGB(20, 24, 32)
+        closeButton.Text = ""
+        closeButton.Parent = parent
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = closeButton
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = closeButton
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 14, 0, 14)
+        icon.Position = UDim2.new(0.5, -7, 0.5, -7)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons.Close
+        icon.ImageColor3 = Theme.Colors.Error
+        icon.Parent = closeButton
+        
+        -- Hover effects
+        self.Connections:Wrap(closeButton, "MouseEnter", function()
+            self.Tweens:Quick(closeButton, {
+                BackgroundColor3 = Color3.fromRGB(60, 30, 30),
+                Size = UDim2.new(0, 30, 0, 30)
+            }, Theme.Animations.Speed.Fast, Enum.EasingStyle.Back)
+            
+            self.Tweens:Quick(stroke, {Color = Theme.Colors.Error}, Theme.Animations.Speed.Fast)
+            self.Tweens:Quick(icon, {Rotation = 90}, Theme.Animations.Speed.Normal)
+        end)
+        
+        self.Connections:Wrap(closeButton, "MouseLeave", function()
+            self.Tweens:Quick(closeButton, {
+                BackgroundColor3 = Color3.fromRGB(20, 24, 32),
+                Size = UDim2.new(0, 28, 0, 28)
+            }, Theme.Animations.Speed.Fast)
+            
+            self.Tweens:Quick(stroke, {Color = Theme.Colors.Stroke.Normal}, Theme.Animations.Speed.Fast)
+            self.Tweens:Quick(icon, {Rotation = 0}, Theme.Animations.Speed.Normal)
+        end)
+        
+        -- Click
+        self.Connections:Wrap(closeButton, "MouseButton1Click", function()
+            self:Close()
+        end)
+    end
+    
+    function Window:CreateContentContainers()
+        -- Tabs container
+        self.TabsContainer = Instance.new("Frame")
+        self.TabsContainer.Size = UDim2.new(0, Theme.Sizes.Tab.Width, 1, -60)
+        self.TabsContainer.Position = UDim2.new(0, 8, 0, 55)
+        self.TabsContainer.BackgroundColor3 = Theme.Colors.Surface
+        self.TabsContainer.Parent = self.MainFrame
+        
+        local tabsCorner = Instance.new("UICorner")
+        tabsCorner.CornerRadius = UDim.new(0, 10)
+        tabsCorner.Parent = self.TabsContainer
+        
+        local tabsLayout = Instance.new("UIListLayout")
+        tabsLayout.Padding = UDim.new(0, 5)
+        tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        tabsLayout.Parent = self.TabsContainer
+        
+        local tabsPadding = Instance.new("UIPadding")
+        tabsPadding.PaddingTop = UDim.new(0, 6)
+        tabsPadding.Parent = self.TabsContainer
+        
+        -- Content container
+        self.ContentContainer = Instance.new("ScrollingFrame")
+        self.ContentContainer.Size = UDim2.new(1, -150, 1, -60)
+        self.ContentContainer.Position = UDim2.new(0, 145, 0, 55)
+        self.ContentContainer.BackgroundTransparency = 1
+        self.ContentContainer.BorderSizePixel = 0
+        self.ContentContainer.ScrollBarThickness = 4
+        self.ContentContainer.ScrollBarImageColor3 = Theme.Colors.Stroke.Active
+        self.ContentContainer.ScrollBarImageTransparency = 0.5
+        self.ContentContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+        self.ContentContainer.Parent = self.MainFrame
+        
+        local contentLayout = Instance.new("UIListLayout")
+        contentLayout.Padding = UDim.new(0, 8)
+        contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        contentLayout.Parent = self.ContentContainer
+        
+        local contentPadding = Instance.new("UIPadding")
+        contentPadding.PaddingTop = UDim.new(0, 5)
+        contentPadding.PaddingRight = UDim.new(0, 8)
+        contentPadding.Parent = self.ContentContainer
+        
+        -- Auto-resize canvas
+        self.Connections:Wrap(contentLayout, "AbsoluteContentSizeChanged", function()
+            self.ContentContainer.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 10)
+        end)
+    end
+    
+    function Window:SetupWindowEvents()
+        -- Toggle button
+        self.Connections:Wrap(self.ToggleButton, "MouseButton1Click", function()
+            self:Toggle()
+        end)
+        
+        -- Hover effects
+        self.Connections:Wrap(self.ToggleButton, "MouseEnter", function()
+            self.Tweens:Smooth(self.ToggleButton, {
+                Size = UDim2.new(0, 48, 0, 48)
+            }, Theme.Animations.Speed.Smooth)
+            
+            self.Tweens:Quick(self.ToggleButton:FindFirstChild("UIStroke"), {
+                Transparency = 0.2
+            })
+        end)
+        
+        self.Connections:Wrap(self.ToggleButton, "MouseLeave", function()
+            self.Tweens:Smooth(self.ToggleButton, {
+                Size = UDim2.new(0, 45, 0, 45)
+            }, Theme.Animations.Speed.Smooth)
+            
+            self.Tweens:Quick(self.ToggleButton:FindFirstChild("UIStroke"), {
+                Transparency = self.IsOpen and 0 or 0.5
+            })
+        end)
+        
+        -- Dragging
+        self:EnableDragging()
+    end
+    
+    function Window:EnableDragging()
+        local isDragging = false
+        local dragInput, dragStart, startPosition
+        
+        self.Connections:Wrap(self.Header, "InputBegan", function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isDragging = true
+                dragStart = input.Position
+                startPosition = self.MainFrame.Position
+            end
+        end)
+        
+        self.Connections:Wrap(self.Header, "InputEnded", function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isDragging = false
+            end
+        end)
+        
+        self.Connections:Wrap(self.Header, "InputChanged", function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+        
+        self.Connections:Wrap(UserInputService, "InputChanged", function(input)
+            if input == dragInput and isDragging then
+                local delta = input.Position - dragStart
+                self.MainFrame.Position = UDim2.new(
+                    startPosition.X.Scale,
+                    startPosition.X.Offset + delta.X,
+                    startPosition.Y.Scale,
+                    startPosition.Y.Offset + delta.Y
+                )
+                self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+            end
+        end)
+    end
+    
+    function Window:Toggle()
+        self.IsOpen = not self.IsOpen
+        if self.IsOpen then
+            self:Open()
+        else
+            self:Close()
+        end
+    end
+    
+    function Window:Open()
+        self.MainFrame.Visible = true
+        
+        self.Tweens:Smooth(self.MainFrame, {
+            Size = UDim2.new(0, 580, 0, 420)
+        }, Theme.Animations.Speed.Slow)
+        
+        self.Tweens:Quick(self.MainFrame:FindFirstChild("UIStroke"), {
+            Transparency = 0.3
+        })
+        
+        self.Tweens:Quick(self.MainFrame:FindFirstChild("ImageLabel"), {
+            ImageTransparency = 0.75
+        }, Theme.Animations.Speed.Slow)
+        
+        self.Tweens:Smooth(self.ToggleButton, {
+            Rotation = 180
+        }, Theme.Animations.Speed.Slow)
+        
+        self.Tweens:Quick(self.ToggleButton:FindFirstChild("UIStroke"), {
+            Thickness = 3,
+            Transparency = 0
+        })
+        
+        -- Show notification
+        Notification.new("Mirage UI", "Window opened!", 2, "Check")
+    end
+    
+    function Window:Close()
+        self.Tweens:Smooth(self.MainFrame, {
+            Size = UDim2.new(0, 0, 0, 0)
+        }, Theme.Animations.Speed.Fast, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        
+        self.Tweens:Quick(self.MainFrame:FindFirstChild("UIStroke"), {
+            Transparency = 1
+        })
+        
+        self.Tweens:Quick(self.MainFrame:FindFirstChild("ImageLabel"), {
+            ImageTransparency = 1
+        })
+        
+        self.Tweens:Smooth(self.ToggleButton, {
+            Rotation = 0
+        }, Theme.Animations.Speed.Slow)
+        
+        self.Tweens:Quick(self.ToggleButton:FindFirstChild("UIStroke"), {
+            Thickness = Theme.Sizes.Stroke,
+            Transparency = 0.5
+        })
+        
+        task.delay(Theme.Animations.Speed.Fast, function()
+            self.MainFrame.Visible = false
+        end)
+    end
+    
+    function Window:FilterElements(query)
+        local lowercaseQuery = query:lower()
+        for _, element in ipairs(self.AllElements) do
+            if lowercaseQuery == "" then
+                element.frame.Visible = (element.tab == self.CurrentTab)
+            else
+                local match = element.name:lower():find(lowercaseQuery, 1, true)
+                element.frame.Visible = match ~= nil
+            end
+        end
+    end
+    
+    function Window:Destroy()
+        self.Connections:Clean()
+        self.ScreenGui:Destroy()
+    end
+end
+
+-- ============================================================================
+-- UI ELEMENTS - Tab and individual controls
+-- ============================================================================
+local Tab = setmetatable({}, BaseComponent) do
+    Tab.__index = Tab
+    
+    function Tab.new(window, name, iconType)
+        local self = setmetatable(BaseComponent.new(), Tab)
+        
+        self.Window = window
+        self.Name = name
+        
+        -- Create tab button
+        self.Button = Instance.new("TextButton")
+        self.Button.Size = UDim2.new(1, -10, 0, Theme.Sizes.Tab.Height)
+        self.Button.BackgroundColor3 = Theme.Colors.Surface
+        self.Button.Text = ""
+        self.Button.AutoButtonColor = false
+        self.Button.Parent = window.TabsContainer
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = Theme.Sizes.Corner
+        corner.Parent = self.Button
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = self.Button
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 16, 0, 16)
+        icon.Position = UDim2.new(0, 10, 0.5, -8)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons:Get(iconType)
+        icon.ImageColor3 = Theme.Colors.TextDark
+        icon.Parent = self.Button
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -38, 1, 0)
+        label.Position = UDim2.new(0, 32, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = name or "Tab"
+        label.TextColor3 = Color3.fromRGB(180, 190, 220)
+        label.TextSize = 11
+        label.Font = Enum.Font.GothamBold
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = self.Button
+        
+        local indicator = Instance.new("Frame")
+        indicator.Size = UDim2.new(0, 2, 0, 0)
+        indicator.Position = UDim2.new(0, 0, 0.5, 0)
+        indicator.AnchorPoint = Vector2.new(0, 0.5)
+        indicator.BackgroundColor3 = Theme.Colors.Primary
+        indicator.Parent = self.Button
+        
+        local indicatorCorner = Instance.new("UICorner")
+        indicatorCorner.CornerRadius = UDim.new(0, 2)
+        indicatorCorner.Parent = indicator
+        
+        -- Create content container
+        self.Content = Instance.new("Frame")
+        self.Content.Size = UDim2.new(1, 0, 1, 0)
+        self.Content.BackgroundTransparency = 1
+        self.Content.Visible = false
+        self.Content.Parent = window.ContentContainer
+        
+        local contentLayout = Instance.new("UIListLayout")
+        contentLayout.Padding = UDim.new(0, 6)
+        contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        contentLayout.Parent = self.Content
+        
+        -- Store tab data
+        window.TabData[name] = {
+            button = self.Button,
+            content = self.Content,
+            stroke = stroke,
+            label = label,
+            icon = icon,
+            indicator = indicator
+        }
+        
+        -- Auto-select first tab
+        if not window.CurrentTab then
+            window.CurrentTab = name
+            self.Content.Visible = true
+            self:Select()
+        end
+        
+        -- Setup events
+        self:SetupEvents()
+        
+        self.Instance = self.Button
+        return self
+    end
+    
+    function Tab:Select()
+        self.Tweens:Quick(self.Button, {BackgroundColor3 = Color3.fromRGB(80, 120, 200)})
+        self.Tweens:Quick(self.Button:FindFirstChild("UIStroke"), {
+            Color = Theme.Colors.Stroke.Active,
+            Transparency = 0.3
+        })
+        self.Tweens:Quick(self.Button:FindFirstChild("TextLabel"), {
+            TextColor3 = Theme.Colors.Text
+        })
+        self.Tweens:Quick(self.Button:FindFirstChild("ImageLabel"), {
+            ImageColor3 = Theme.Colors.Text
+        })
+        self.Tweens:Smooth(self.Button:FindFirstChild("Frame"), {
+            Size = UDim2.new(0, 2, 0.7, 0)
+        })
+        
+        self.Tweens:Quick(self.Button:FindFirstChild("ImageLabel"), {
+            Rotation = 360
+        }, 0.4)
+        
+        task.delay(0.4, function()
+            if self.Button:FindFirstChild("ImageLabel") then
+                self.Button:FindFirstChild("ImageLabel").Rotation = 0
+            end
+        end)
+    end
+    
+    function Tab:Deselect()
+        self.Tweens:Quick(self.Button, {BackgroundColor3 = Theme.Colors.Surface})
+        self.Tweens:Quick(self.Button:FindFirstChild("UIStroke"), {
+            Color = Theme.Colors.Stroke.Normal,
+            Transparency = 0.5
+        })
+        self.Tweens:Quick(self.Button:FindFirstChild("TextLabel"), {
+            TextColor3 = Color3.fromRGB(180, 190, 220)
+        })
+        self.Tweens:Quick(self.Button:FindFirstChild("ImageLabel"), {
+            ImageColor3 = Color3.fromRGB(140, 160, 200)
+        })
+        self.Tweens:Quick(self.Button:FindFirstChild("Frame"), {
+            Size = UDim2.new(0, 2, 0, 0)
+        })
+    end
+    
+    function Tab:SetupEvents()
+        local window = self.Window
+        
+        self.Connections:Wrap(self.Button, "MouseButton1Click", function()
+            if window.CurrentTab ~= self.Name then
+                -- Deselect current tab
+                local currentData = window.TabData[window.CurrentTab]
+                if currentData then
+                    currentData.content.Visible = false
+                    Tab.new(window, window.CurrentTab):Deselect()
+                end
+                
+                -- Select new tab
+                window.CurrentTab = self.Name
+                self.Content.Visible = true
+                self:Select()
+                
+                -- Reset search and scroll
+                window.ContentContainer.CanvasPosition = Vector2.new(0, 0)
+                window.SearchBox.Text = ""
+                window:FilterElements("")
+            end
+        end)
+        
+        self.Connections:Wrap(self.Button, "MouseEnter", function()
+            if window.CurrentTab ~= self.Name then
+                self.Tweens:Quick(self.Button, {BackgroundColor3 = Theme.Colors.SurfaceHover})
+                self.Tweens:Quick(self.Button:FindFirstChild("UIStroke"), {
+                    Color = Theme.Colors.Stroke.Hover
+                })
+                self.Tweens:Quick(self.Button:FindFirstChild("Frame"), {
+                    Size = UDim2.new(0, 2, 0.3, 0)
+                })
+            end
+        end)
+        
+        self.Connections:Wrap(self.Button, "MouseLeave", function()
+            if window.CurrentTab ~= self.Name then
+                self.Tweens:Quick(self.Button, {BackgroundColor3 = Theme.Colors.Surface})
+                self.Tweens:Quick(self.Button:FindFirstChild("UIStroke"), {
+                    Color = Theme.Colors.Stroke.Normal
+                })
+                self.Tweens:Quick(self.Button:FindFirstChild("Frame"), {
+                    Size = UDim2.new(0, 2, 0, 0)
+                })
+            end
+        end)
+    end
+    
+    -- UI ELEMENTS
+    function Tab:Button(text, buttonIcon, callback)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -8, 0, Theme.Sizes.Button.Height)
+        button.BackgroundColor3 = Theme.Colors.Surface
+        button.Text = ""
+        button.AutoButtonColor = false
+        button.Parent = self.Content
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = Theme.Sizes.Button.Corner
+        corner.Parent = button
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = button
+        
+        local glow = Instance.new("ImageLabel")
+        glow.Size = UDim2.new(1, 20, 1, 20)
+        glow.Position = UDim2.new(0.5, -10, 0.5, -10)
+        glow.BackgroundTransparency = 1
+        glow.Image = "rbxassetid://5028857084"
+        glow.ImageColor3 = Theme.Colors.Stroke.Hover
+        glow.ImageTransparency = 1
+        glow.ZIndex = -1
+        glow.Parent = button
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, Theme.Sizes.Button.Icon, 0, Theme.Sizes.Button.Icon)
+        icon.Position = UDim2.new(0, 12, 0.5, -Theme.Sizes.Button.Icon/2)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons:Get(buttonIcon)
+        icon.ImageColor3 = Theme.Colors.Primary
+        icon.Parent = button
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.Position = UDim2.new(0, 38, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text or "Button"
+        label.TextColor3 = Theme.Colors.Text
+        label.TextSize = 12
+        label.Font = Enum.Font.GothamBold
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = button
+        
+        local arrow = Instance.new("ImageLabel")
+        arrow.Size = UDim2.new(0, 12, 0, 12)
+        arrow.Position = UDim2.new(1, -26, 0.5, -6)
+        arrow.BackgroundTransparency = 1
+        arrow.Image = Icons.Chevron
+        arrow.ImageColor3 = Color3.fromRGB(80, 100, 140)
+        arrow.Rotation = -90
+        arrow.Parent = button
+        
+        local ripple = RippleEffect.new(button)
+        
+        -- Register element
+        table.insert(self.Window.AllElements, {
+            frame = button,
+            name = text or "Button",
+            tab = self.Name
+        })
+        
+        -- Events
+        self.Connections:Wrap(button, "MouseButton1Click", function()
+            ripple:Trigger()
+            
+            self.Tweens:Quick(button, {BackgroundColor3 = Theme.Colors.Primary}, Theme.Animations.Speed.Fast)
+            self.Tweens:Quick(icon, {Rotation = 360}, 0.4)
+            self.Tweens:Quick(glow, {ImageTransparency = 0.6}, Theme.Animations.Speed.Fast)
+            
+            task.delay(Theme.Animations.Speed.Fast, function()
+                self.Tweens:Quick(button, {BackgroundColor3 = Theme.Colors.Surface}, Theme.Animations.Speed.Normal)
+                self.Tweens:Quick(glow, {ImageTransparency = 1}, Theme.Animations.Speed.Normal)
+            end)
+            
+            task.delay(0.4, function()
+                if icon then icon.Rotation = 0 end
+            end)
+            
+            if callback then callback() end
+        end)
+        
+        self.Connections:Wrap(button, "MouseEnter", function()
+            self.Tweens:Quick(button, {BackgroundColor3 = Theme.Colors.SurfaceHover})
+            self.Tweens:Quick(stroke, {Color = Theme.Colors.Stroke.Hover, Transparency = 0.3})
+            self.Tweens:Quick(arrow, {Position = UDim2.new(1, -22, 0.5, -6)})
+            self.Tweens:Quick(glow, {ImageTransparency = 0.85})
+            self.Tweens:Quick(button, {Size = UDim2.new(1, -6, 0, Theme.Sizes.Button.Height + 2)})
+        end)
+        
+        self.Connections:Wrap(button, "MouseLeave", function()
+            self.Tweens:Quick(button, {BackgroundColor3 = Theme.Colors.Surface})
+            self.Tweens:Quick(stroke, {Color = Theme.Colors.Stroke.Normal, Transparency = 0.5})
+            self.Tweens:Quick(arrow, {Position = UDim2.new(1, -26, 0.5, -6)})
+            self.Tweens:Quick(glow, {ImageTransparency = 1})
+            self.Tweens:Quick(button, {Size = UDim2.new(1, -8, 0, Theme.Sizes.Button.Height)})
+        end)
+        
+        return button
+    end
+    
+    function Tab:Toggle(text, toggleIcon, default, callback)
+        local isOn = default or false
+        
+        local toggle = Instance.new("Frame")
+        toggle.Size = UDim2.new(1, -8, 0, Theme.Sizes.Toggle.Height)
+        toggle.BackgroundColor3 = Theme.Colors.Surface
+        toggle.Parent = self.Content
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = Theme.Sizes.Corner
+        corner.Parent = toggle
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = isOn and Theme.Colors.Stroke.Active or Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Transparency = isOn and 0.3 or 0.5
+        stroke.Parent = toggle
+        
+        local glow = Instance.new("ImageLabel")
+        glow.Size = UDim2.new(1, 20, 1, 20)
+        glow.Position = UDim2.new(0.5, -10, 0.5, -10)
+        glow.BackgroundTransparency = 1
+        glow.Image = "rbxassetid://5028857084"
+        glow.ImageColor3 = Theme.Colors.Stroke.Hover
+        glow.ImageTransparency = isOn and 0.8 or 1
+        glow.ZIndex = -1
+        glow.Parent = toggle
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 18, 0, 18)
+        icon.Position = UDim2.new(0, 12, 0.5, -9)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons:Get(toggleIcon)
+        icon.ImageColor3 = Theme.Colors.Primary
+        icon.Parent = toggle
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -100, 1, 0)
+        label.Position = UDim2.new(0, 38, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text or "Toggle"
+        label.TextColor3 = Theme.Colors.Text
+        label.TextSize = 12
+        label.Font = Enum.Font.GothamBold
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = toggle
+        
+        local switch = Instance.new("Frame")
+        switch.Size = UDim2.new(0, Theme.Sizes.Toggle.SwitchWidth, 0, Theme.Sizes.Toggle.SwitchHeight)
+        switch.Position = UDim2.new(1, -60, 0.5, -Theme.Sizes.Toggle.SwitchHeight/2)
+        switch.BackgroundColor3 = isOn and Theme.Colors.Primary or Color3.fromRGB(35, 40, 50)
+        switch.Parent = toggle
+        
+        local switchCorner = Instance.new("UICorner")
+        switchCorner.CornerRadius = UDim.new(0, Theme.Sizes.Toggle.SwitchHeight/2)
+        switchCorner.Parent = switch
+        
+        local knob = Instance.new("Frame")
+        knob.Size = UDim2.new(0, Theme.Sizes.Toggle.Knob, 0, Theme.Sizes.Toggle.Knob)
+        knob.Position = isOn and UDim2.new(1, -Theme.Sizes.Toggle.Knob-2, 0.5, -Theme.Sizes.Toggle.Knob/2) or UDim2.new(0, 2, 0.5, -Theme.Sizes.Toggle.Knob/2)
+        knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        knob.Parent = switch
+        
+        local knobCorner = Instance.new("UICorner")
+        knobCorner.CornerRadius = UDim.new(0, Theme.Sizes.Toggle.Knob/2)
+        knobCorner.Parent = knob
+        
+        local knobGlow = Instance.new("ImageLabel")
+        knobGlow.Size = UDim2.new(1, 12, 1, 12)
+        knobGlow.Position = UDim2.new(0.5, -6, 0.5, -6)
+        knobGlow.BackgroundTransparency = 1
+        knobGlow.Image = "rbxassetid://5028857084"
+        knobGlow.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        knobGlow.ImageTransparency = isOn and 0.6 or 1
+        knobGlow.ZIndex = -1
+        knobGlow.Parent = knob
+        
+        local check = Instance.new("ImageLabel")
+        check.Size = UDim2.new(0, 10, 0, 10)
+        check.Position = UDim2.new(0.5, -5, 0.5, -5)
+        check.BackgroundTransparency = 1
+        check.Image = Icons.Check
+        check.ImageColor3 = isOn and Theme.Colors.Primary or Color3.fromRGB(60, 70, 90)
+        check.ImageTransparency = isOn and 0 or 1
+        check.Parent = knob
+        
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 1, 0)
+        button.BackgroundTransparency = 1
+        button.Text = ""
+        button.Parent = toggle
+        
+        -- Register element
+        table.insert(self.Window.AllElements, {
+            frame = toggle,
+            name = text or "Toggle",
+            tab = self.Name
+        })
+        
+        -- Events
+        self.Connections:Wrap(button, "MouseButton1Click", function()
+            isOn = not isOn
+            
+            self.Tweens:Smooth(switch, {
+                BackgroundColor3 = isOn and Theme.Colors.Primary or Color3.fromRGB(35, 40, 50)
+            }, Theme.Animations.Speed.Fast)
+            
+            self.Tweens:Smooth(knob, {
+                Position = isOn and UDim2.new(1, -Theme.Sizes.Toggle.Knob-2, 0.5, -Theme.Sizes.Toggle.Knob/2) or UDim2.new(0, 2, 0.5, -Theme.Sizes.Toggle.Knob/2)
+            }, Theme.Animations.Speed.Fast, Enum.EasingStyle.Back)
+            
+            self.Tweens:Quick(knobGlow, {
+                ImageTransparency = isOn and 0.6 or 1
+            }, Theme.Animations.Speed.Fast)
+            
+            self.Tweens:Quick(check, {
+                ImageTransparency = isOn and 0 or 1,
+                ImageColor3 = isOn and Theme.Colors.Primary or Color3.fromRGB(60, 70, 90)
+            }, Theme.Animations.Speed.Fast)
+            
+            self.Tweens:Quick(stroke, {
+                Color = isOn and Theme.Colors.Stroke.Active or Theme.Colors.Stroke.Normal,
+                Transparency = isOn and 0.3 or 0.5
+            }, Theme.Animations.Speed.Fast)
+            
+            self.Tweens:Quick(glow, {
+                ImageTransparency = isOn and 0.8 or 1
+            }, Theme.Animations.Speed.Fast)
+            
+            if callback then callback(isOn) end
+        end)
+        
+        self.Connections:Wrap(button, "MouseEnter", function()
+            self.Tweens:Quick(toggle, {BackgroundColor3 = Theme.Colors.SurfaceHover})
+        end)
+        
+        self.Connections:Wrap(button, "MouseLeave", function()
+            self.Tweens:Quick(toggle, {BackgroundColor3 = Theme.Colors.Surface})
+        end)
+        
+        return {
+            Set = function(value)
+                isOn = value
+                switch.BackgroundColor3 = isOn and Theme.Colors.Primary or Color3.fromRGB(35, 40, 50)
+                knob.Position = isOn and UDim2.new(1, -Theme.Sizes.Toggle.Knob-2, 0.5, -Theme.Sizes.Toggle.Knob/2) or UDim2.new(0, 2, 0.5, -Theme.Sizes.Toggle.Knob/2)
+                check.ImageTransparency = isOn and 0 or 1
+                stroke.Color = isOn and Theme.Colors.Stroke.Active or Theme.Colors.Stroke.Normal
+                glow.ImageTransparency = isOn and 0.8 or 1
+            end,
+            Get = function()
+                return isOn
+            end
+        }
+    end
+    
+    function Tab:Slider(text, sliderIcon, min, max, default, callback)
+        local value = default or min
+        
+        local slider = Instance.new("Frame")
+        slider.Size = UDim2.new(1, -8, 0, Theme.Sizes.Slider.Height)
+        slider.BackgroundColor3 = Theme.Colors.Surface
+        slider.Parent = self.Content
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = slider
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = slider
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 16, 0, 16)
+        icon.Position = UDim2.new(0, 10, 0.5, -8)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons:Get(sliderIcon)
+        icon.ImageColor3 = Theme.Colors.Primary
+        icon.Parent = slider
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(0, 100, 0, 16)
+        title.Position = UDim2.new(0, 32, 0.5, -8)
+        title.BackgroundTransparency = 1
+        title.Text = text or "Slider"
+        title.TextColor3 = Theme.Colors.Text
+        title.TextSize = 12
+        title.Font = Enum.Font.GothamBold
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = slider
+        
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(0, 120, 0, Theme.Sizes.Slider.BarHeight)
+        bar.Position = UDim2.new(1, -180, 0.5, -Theme.Sizes.Slider.BarHeight/2)
+        bar.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
+        bar.Parent = slider
+        
+        local barCorner = Instance.new("UICorner")
+        barCorner.CornerRadius = UDim.new(0, Theme.Sizes.Slider.BarHeight/2)
+        barCorner.Parent = bar
+        
+        local barStroke = Instance.new("UIStroke")
+        barStroke.Color = Theme.Colors.Stroke.Normal
+        barStroke.Thickness = Theme.Sizes.Stroke
+        barStroke.Parent = bar
+        
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+        fill.BackgroundColor3 = Theme.Colors.Primary
+        fill.Parent = bar
+        
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, Theme.Sizes.Slider.BarHeight/2)
+        fillCorner.Parent = fill
+        
+        local fillGradient = Instance.new("UIGradient")
+        fillGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.Colors.Primary),
+            ColorSequenceKeypoint.new(1, Theme.Colors.Secondary)
+        })
+        fillGradient.Parent = fill
+        
+        local handle = Instance.new("Frame")
+        handle.Size = UDim2.new(0, Theme.Sizes.Slider.Handle, 0, Theme.Sizes.Slider.Handle)
+        handle.Position = UDim2.new((value - min) / (max - min), 0, 0.5, -Theme.Sizes.Slider.Handle/2)
+        handle.AnchorPoint = Vector2.new(0.5, 0.5)
+        handle.BackgroundColor3 = Theme.Colors.Primary
+        handle.Parent = bar
+        
+        local handleCorner = Instance.new("UICorner")
+        handleCorner.CornerRadius = UDim.new(0, Theme.Sizes.Slider.Handle/2)
+        handleCorner.Parent = handle
+        
+        local handleStroke = Instance.new("UIStroke")
+        handleStroke.Color = Color3.fromRGB(255, 255, 255)
+        handleStroke.Thickness = 1.5
+        handleStroke.Transparency = 0.8
+        handleStroke.Parent = handle
+        
+        local handleGlow = Instance.new("ImageLabel")
+        handleGlow.Size = UDim2.new(1, 15, 1, 15)
+        handleGlow.Position = UDim2.new(0.5, -7.5, 0.5, -7.5)
+        handleGlow.BackgroundTransparency = 1
+        handleGlow.Image = "rbxassetid://5028857084"
+        handleGlow.ImageColor3 = Theme.Colors.Primary
+        handleGlow.ImageTransparency = 0.7
+        handleGlow.ZIndex = -1
+        handleGlow.Parent = handle
+        
+        local valueLabel = Instance.new("TextLabel")
+        valueLabel.Size = UDim2.new(0, 45, 0, 16)
+        valueLabel.Position = UDim2.new(1, -50, 0.5, -8)
+        valueLabel.BackgroundTransparency = 1
+        valueLabel.Text = tostring(value)
+        valueLabel.TextColor3 = Theme.Colors.Primary
+        valueLabel.TextSize = 12
+        valueLabel.Font = Enum.Font.GothamBold
+        valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+        valueLabel.Parent = slider
+        
+        -- Register element
+        table.insert(self.Window.AllElements, {
+            frame = slider,
+            name = text or "Slider",
+            tab = self.Name
+        })
+        
+        -- Input handling
+        local isDragging = false
+        
+        local function updateSlider(input)
+            local barX = bar.AbsolutePosition.X
+            local barWidth = bar.AbsoluteSize.X
+            local percentage = math.clamp((input.Position.X - barX) / barWidth, 0, 1)
+            value = math.floor(min + (max - min) * percentage)
+            valueLabel.Text = tostring(value)
+            
+            self.Tweens:Quick(fill, {Size = UDim2.new(percentage, 0, 1, 0)})
+            self.Tweens:Quick(handle, {Position = UDim2.new(percentage, 0, 0.5, 0)})
+            
+            if callback then callback(value) end
+        end
+        
+        local sliderButton = Instance.new("TextButton")
+        sliderButton.Size = UDim2.new(1, 0, 1, 0)
+        sliderButton.BackgroundTransparency = 1
+        sliderButton.Text = ""
+        sliderButton.ZIndex = 10
+        sliderButton.Parent = slider
+        
+        self.Connections:Wrap(sliderButton, "InputBegan", function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isDragging = true
+                updateSlider(input)
+                self.Tweens:Quick(handle, {Size = UDim2.new(0, Theme.Sizes.Slider.Handle + 4, 0, Theme.Sizes.Slider.Handle + 4)})
+                self.Tweens:Quick(handleGlow, {ImageTransparency = 0.4})
+                self.Tweens:Quick(barStroke, {Color = Theme.Colors.Stroke.Active, Transparency = 0.3})
+            end
+        end)
+        
+        self.Connections:Wrap(UserInputService, "InputEnded", function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isDragging = false
+                self.Tweens:Quick(handle, {Size = UDim2.new(0, Theme.Sizes.Slider.Handle, 0, Theme.Sizes.Slider.Handle)})
+                self.Tweens:Quick(handleGlow, {ImageTransparency = 0.7})
+                self.Tweens:Quick(barStroke, {Color = Theme.Colors.Stroke.Normal, Transparency = 0.5})
+            end
+        end)
+        
+        self.Connections:Wrap(UserInputService, "InputChanged", function(input)
+            if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                updateSlider(input)
+            end
+        end)
+        
+        return {
+            Set = function(newValue)
+                value = math.clamp(newValue, min, max)
+                valueLabel.Text = tostring(value)
+                local percentage = (value - min) / (max - min)
+                fill.Size = UDim2.new(percentage, 0, 1, 0)
+                handle.Position = UDim2.new(percentage, 0, 0.5, 0)
+            end,
+            Get = function()
+                return value
+            end
+        }
+    end
+    
+    function Tab:Dropdown(text, dropdownIcon, options, default, callback)
+        local selected = default or options[1] or ""
+        local isExpanded = false
+        
+        local dropdown = Instance.new("Frame")
+        dropdown.Size = UDim2.new(1, -8, 0, 40)
+        dropdown.BackgroundColor3 = Theme.Colors.Surface
+        dropdown.ClipsDescendants = true
+        dropdown.Parent = self.Content
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = Theme.Sizes.Corner
+        corner.Parent = dropdown
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Colors.Stroke.Normal
+        stroke.Thickness = Theme.Sizes.Stroke
+        stroke.Parent = dropdown
+        
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 18, 0, 18)
+        icon.Position = UDim2.new(0, 12, 0, 11)
+        icon.BackgroundTransparency = 1
+        icon.Image = Icons:Get(dropdownIcon)
+        icon.ImageColor3 = Theme.Colors.Primary
+        icon.Parent = dropdown
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -140, 0, 40)
+        label.Position = UDim2.new(0, 38, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text or "Dropdown"
+        label.TextColor3 = Theme.Colors.Text
+        label.TextSize = 12
+        label.Font = Enum.Font.GothamBold
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = dropdown
+        
+        local selectedValue = Instance.new("TextLabel")
+        selectedValue.Size = UDim2.new(0, 70, 0, 22)
+        selectedValue.Position = UDim2.new(1, -80, 0, 9)
+        selectedValue.BackgroundColor3 = Color3.fromRGB(30, 35, 45)
+        selectedValue.Text = selected
+        selectedValue.TextColor3 = Color3.fromRGB(150, 170, 220)
+        selectedValue.TextSize = 10
+        selectedValue.Font = Enum.Font.Gotham
+        selectedValue.Parent = dropdown
+        
+        local selectedCorner = Instance.new("UICorner")
+        selectedCorner.CornerRadius = UDim.new(0, 6)
+        selectedCorner.Parent = selectedValue
+        
+        local arrow = Instance.new("ImageLabel")
+        arrow.Size = UDim2.new(0, 12, 0, 12)
+        arrow.Position = UDim2.new(1, -26, 0, 14)
+        arrow.BackgroundTransparency = 1
+        arrow.Image = Icons.Chevron
+        arrow.ImageColor3 = Theme.Colors.Primary
+        arrow.Rotation = 90
+        arrow.Parent = dropdown
+        
+        local optionsContainer = Instance.new("Frame")
+        optionsContainer.Size = UDim2.new(1, -10, 0, 0)
+        optionsContainer.Position = UDim2.new(0, 5, 0, 44)
+        optionsContainer.BackgroundTransparency = 1
+        optionsContainer.Parent = dropdown
+        
+        local optionsLayout = Instance.new("UIListLayout")
+        optionsLayout.Padding = UDim.new(0, 3)
+        optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        optionsLayout.Parent = optionsContainer
+        
+        -- Register element
+        table.insert(self.Window.AllElements, {
+            frame = dropdown,
+            name = text or "Dropdown",
+            tab = self.Name
+        })
+        
+        -- Create options
+        local optionButtons = {}
+        for index, option in ipairs(options) do
+            local optionButton = Instance.new("TextButton")
+            optionButton.Size = UDim2.new(1, 0, 0, 28)
+            optionButton.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
+            optionButton.Text = ""
+            optionButton.AutoButtonColor = false
+            optionButton.Parent = optionsContainer
+            
+            local optionCorner = Instance.new("UICorner")
+            optionCorner.CornerRadius = UDim.new(0, 6)
+            optionCorner.Parent = optionButton
+            
+            local optionIcon = Instance.new("ImageLabel")
+            optionIcon.Size = UDim2.new(0, 12, 0, 12)
+            optionIcon.Position = UDim2.new(0, 8, 0.5, -6)
+            optionIcon.BackgroundTransparency = 1
+            optionIcon.Image = Icons.Check
+            optionIcon.ImageColor3 = Theme.Colors.Primary
+            optionIcon.ImageTransparency = selected == option and 0 or 1
+            optionIcon.Parent = optionButton
+            
+            local optionLabel = Instance.new("TextLabel")
+            optionLabel.Size = UDim2.new(1, -30, 1, 0)
+            optionLabel.Position = UDim2.new(0, 26, 0, 0)
+            optionLabel.BackgroundTransparency = 1
+            optionLabel.Text = option
+            optionLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
+            optionLabel.TextSize = 11
+            optionLabel.Font = Enum.Font.Gotham
+            optionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            optionLabel.Parent = optionButton
+            
+            table.insert(optionButtons, {button = optionButton, icon = optionIcon})
+            
+            -- Events
+            self.Connections:Wrap(optionButton, "MouseEnter", function()
+                self.Tweens:Quick(optionButton, {BackgroundColor3 = Color3.fromRGB(60, 90, 150)}, Theme.Animations.Speed.Fast)
+            end)
+            
+            self.Connections:Wrap(optionButton, "MouseLeave", function()
+                self.Tweens:Quick(optionButton, {BackgroundColor3 = Color3.fromRGB(25, 30, 40)}, Theme.Animations.Speed.Fast)
+            end)
+            
+            self.Connections:Wrap(optionButton, "MouseButton1Click", function()
+                -- Hide all checkmarks
+                for _, btn in ipairs(optionButtons) do
+                    self.Tweens:Quick(btn.icon, {ImageTransparency = 1}, Theme.Animations.Speed.Fast)
+                end
+                
+                -- Show selected
+                self.Tweens:Quick(optionIcon, {ImageTransparency = 0}, Theme.Animations.Speed.Fast)
+                
+                selected = option
+                selectedValue.Text = option
+                isExpanded = false
+                
+                self.Tweens:Smooth(dropdown, {
+                    Size = UDim2.new(1, -8, 0, 40)
+                }, Theme.Animations.Speed.Smooth)
+                
+                self.Tweens:Quick(arrow, {Rotation = 90}, Theme.Animations.Speed.Normal)
+                self.Tweens:Quick(stroke, {Color = Theme.Colors.Stroke.Normal}, Theme.Animations.Speed.Fast)
+                
+                if callback then callback(selected) end
+            end)
+        end
+        
+        -- Header click
+        local headerButton = Instance.new("TextButton")
+        headerButton.Size = UDim2.new(1, 0, 0, 40)
+        headerButton.BackgroundTransparency = 1
+        headerButton.Text = ""
+        headerButton.Parent = dropdown
+        
+        self.Connections:Wrap(headerButton, "MouseButton1Click", function()
+            isExpanded = not isExpanded
+            
+            local targetHeight = isExpanded and (44 + #options * 31) or 40
+            
+            self.Tweens:Smooth(dropdown, {
+                Size = UDim2.new(1, -8, 0, targetHeight)
+            }, Theme.Animations.Speed.Smooth)
+            
+            self.Tweens:Quick(arrow, {
+                Rotation = isExpanded and 270 or 90
+            }, Theme.Animations.Speed.Normal)
+            
+            self.Tweens:Quick(stroke, {
+                Color = isExpanded and Theme.Colors.Stroke.Active or Theme.Colors.Stroke.Normal
+            }, Theme.Animations.Speed.Fast)
+        end)
+        
+        return {
+            Set = function(value)
+                if table.find(options, value) then
+                    selected = value
+                    selectedValue.Text = value
+                end
+            end,
+            Get = function()
+                return selected
+            end
+        }
+    end
+    
+    -- ... (Other elements: Input, Label, Separator, Keybind, ColorPicker, etc.)
+    -- Follow same pattern for consistency
+    
+    function Tab:Destroy()
+        self.Connections:Clean()
+        if self.Button then self.Button:Destroy() end
+        if self.Content then self.Content:Destroy() end
+    end
+end
+
+-- ============================================================================
+-- MAIN API
+-- ============================================================================
+local MirageUI = {
+    Notifications = {},
+    ActiveNotifications = {},
+    Windows = {}
+}
+
+function MirageUI:Notify(title, content, duration, iconType)
+    local notification = Notification.new(title, content, duration, iconType)
+    return notification
+end
+
+function MirageUI:Window(title)
+    local window = Window.new(title)
+    table.insert(self.Windows, window)
+    return window
+end
+
+function MirageUI:Destroy()
+    for _, window in ipairs(self.Windows) do
+        window:Destroy()
+    end
+    self.Windows = {}
+    
+    local notifyGui = CoreGui:FindFirstChild("MirageNotify")
+    if notifyGui then
+        notifyGui:Destroy()
+    end
+end
+
+return MirageUI
 
