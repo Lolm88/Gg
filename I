@@ -1,1 +1,222 @@
-
+local a,b,c,d,e,f,g,h,i,j,k=game:GetService("TweenService"),game:GetService("UserInputService"),game:GetService("CoreGui"),Instance.new,UDim2.new,UDim.new,Color3.fromRGB,Vector2.new,Enum.Font.Gotham,Enum.EasingStyle.Quart,TweenInfo.new
+local function l(m,n,o,p)a:Create(m,k(o or.3,p or j),n):Play()end
+local function q(r,s)local t=d(r)for u,v in pairs(s)do if u~="Parent"then t[u]=v end end if s.Parent then t.Parent=s.Parent end return t end
+local function w(x,y)return q("UICorner",{CornerRadius=f(0,y or 8),Parent=x})end
+local function z(x,A,B)return q("UIStroke",{Color=A or g(80,120,200),Thickness=B or 1,Transparency=.5,Parent=x})end
+local C,D={},{}
+function C:Notify(E,F,G,H)
+local I=c:FindFirstChild("TekkitNotify")or q("ScreenGui",{Name="TekkitNotify",ResetOnSpawn=false,Parent=c})
+local J=q("Frame",{Size=e(0,300,0,70),Position=e(1,320,1,-100),BackgroundColor3=g(15,18,25),Parent=I})
+w(J,10)z(J,g(100,150,255),1.5)
+q("TextLabel",{Size=e(1,-20,0,20),Position=e(0,10,0,10),BackgroundTransparency=1,Text=E or"Notification",TextColor3=g(240,245,255),TextSize=14,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=J})
+q("TextLabel",{Size=e(1,-20,0,16),Position=e(0,10,0,32),BackgroundTransparency=1,Text=F or"",TextColor3=g(140,150,180),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,Parent=J})
+local K=q("Frame",{Size=e(1,-20,0,3),Position=e(0,10,1,-10),BackgroundColor3=g(35,40,50),Parent=J})
+w(K,2)
+local L=q("Frame",{Size=e(1,0,1,0),BackgroundColor3=g(100,150,255),Parent=K})
+w(L,2)
+table.insert(D,J)
+local M=0
+for N,O in ipairs(D)do if O and O.Parent then M=M+1 l(O,{Position=e(1,-320,1,-20-(M*80))},.3,Enum.EasingStyle.Back)end end
+l(J,{Position=e(1,-320,1,-20-(M*80))},.5,Enum.EasingStyle.Back)
+task.spawn(function()
+local P=G or 3
+for Q=100,0,-1 do L.Size=e(Q/100,0,1,0)task.wait(P/100)end
+l(J,{Position=e(1,320,J.Position.Y.Scale,J.Position.Y.Offset),BackgroundTransparency=1},.4,Enum.EasingStyle.Back)
+task.wait(.4)
+for N,O in ipairs(D)do if O==J then table.remove(D,N)break end end
+J:Destroy()
+M=0
+for N,O in ipairs(D)do if O and O.Parent then M=M+1 l(O,{Position=e(1,-320,1,-20-(M*80))},.3,Enum.EasingStyle.Back)end end
+end)
+return J
+end
+function C:Window(R)
+local S={}
+local T=q("ScreenGui",{Name="TekkitHub",ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Sibling,Parent=c})
+local U=q("ImageButton",{Size=e(0,45,0,45),Position=e(0,20,.5,-22),BackgroundColor3=g(15,18,25),Parent=T})
+w(U,10)z(U,g(100,150,255),1.5)
+local V=q("Frame",{Size=e(0,0,0,0),Position=e(.5,0,.5,0),AnchorPoint=h(.5,.5),BackgroundColor3=g(18,18,18),Visible=false,ClipsDescendants=true,Parent=T})
+w(V,12)z(V,g(40,40,45),2)
+local W=q("Frame",{Size=e(1,0,0,50),BackgroundColor3=g(25,25,28),Parent=V})
+w(W,12)
+q("Frame",{Size=e(1,0,0,15),Position=e(0,0,1,-15),BackgroundColor3=g(25,25,28),Parent=W})
+q("TextLabel",{Size=e(0,200,0,20),Position=e(0,15,0,8),BackgroundTransparency=1,Text=R or"Tekkit Hub",TextColor3=g(255,255,255),TextSize=16,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=W})
+q("TextLabel",{Size=e(0,200,0,15),Position=e(0,15,0,28),BackgroundTransparency=1,Text="Main",TextColor3=g(130,130,140),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=W})
+local X=q("TextButton",{Size=e(0,28,0,28),Position=e(1,-38,0,11),BackgroundColor3=g(20,24,32),Text="",Parent=W})
+w(X,8)
+q("TextLabel",{Size=e(1,0,1,0),BackgroundTransparency=1,Text="X",TextColor3=g(200,100,100),TextSize=14,Font=i,Parent=X})
+local Y=q("Frame",{Size=e(0,140,1,-60),Position=e(0,10,0,55),BackgroundColor3=g(22,22,25),Parent=V})
+w(Y,10)
+q("UIListLayout",{Padding=f(0,6),SortOrder=Enum.SortOrder.LayoutOrder,Parent=Y})
+q("UIPadding",{PaddingTop=f(0,8),PaddingLeft=f(0,8),PaddingRight=f(0,8),Parent=Y})
+local Z=q("ScrollingFrame",{Size=e(1,-160,1,-60),Position=e(0,155,0,55),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=4,ScrollBarImageColor3=g(60,60,65),CanvasSize=e(0,0,0,0),Parent=V})
+local _=q("UIListLayout",{Padding=f(0,8),SortOrder=Enum.SortOrder.LayoutOrder,Parent=Z})
+q("UIPadding",{PaddingTop=f(0,5),PaddingRight=f(0,8),Parent=Z})
+_:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()Z.CanvasSize=e(0,0,0,_.AbsoluteContentSize.Y+10)end)
+local a0,a1,a2={},{},false
+local function a3()V.Visible=true V.Size=e(0,0,0,0)l(V,{Size=e(0,700,0,450)},.5,Enum.EasingStyle.Back)end
+local function a4()l(V,{Size=e(0,0,0,0)},.4,Enum.EasingStyle.Quart)task.delay(.4,function()V.Visible=false end)end
+U.MouseButton1Click:Connect(function()a2=not a2 if a2 then a3()else a4()end end)
+X.MouseButton1Click:Connect(function()a2=false a4()end)
+X.MouseEnter:Connect(function()l(X,{BackgroundColor3=g(60,30,30)},.2)end)
+X.MouseLeave:Connect(function()l(X,{BackgroundColor3=g(20,24,32)},.2)end)
+local a5,a6,a7
+W.InputBegan:Connect(function(a8)if a8.UserInputType==Enum.UserInputType.MouseButton1 or a8.UserInputType==Enum.UserInputType.Touch then a5=true a6=a8.Position a7=V.Position a8.Changed:Connect(function()if a8.UserInputState==Enum.UserInputState.End then a5=false end end)end end)
+W.InputChanged:Connect(function(a8)if a8.UserInputType==Enum.UserInputType.MouseMovement or a8.UserInputType==Enum.UserInputType.Touch then a9=a8 end end)
+b.InputChanged:Connect(function(a8)if a8==a9 and a5 then local aa=a8.Position-a6 V.Position=e(a7.X.Scale,a7.X.Offset+aa.X,a7.Y.Scale,a7.Y.Offset+aa.Y)V.AnchorPoint=h(.5,.5)end end)
+function S:Tab(ab)
+local ac={}
+local ad=q("TextButton",{Size=e(1,-16,0,38),BackgroundColor3=g(28,28,32),Text="",AutoButtonColor=false,Parent=Y})
+w(ad,8)
+local ae=z(ad,g(45,45,50))
+q("TextLabel",{Size=e(1,-20,1,0),Position=e(0,10,0,0),BackgroundTransparency=1,Text=ab or"Main",TextColor3=g(180,180,190),TextSize=13,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=ad})
+local af=q("Frame",{Size=e(1,0,1,0),BackgroundTransparency=1,Visible=false,Parent=Z})
+q("UIListLayout",{Padding=f(0,8),SortOrder=Enum.SortOrder.LayoutOrder,Parent=af})
+a0[ab]={button=ad,content=af,stroke=ae}
+if not a1 then a1=ab af.Visible=true ad.BackgroundColor3=g(60,120,200)ae.Color=g(80,140,220)ae.Transparency=.3 end
+ad.MouseButton1Click:Connect(function()if a1~=ab then if a1 and a0[a1]then a0[a1].content.Visible=false l(a0[a1].button,{BackgroundColor3=g(28,28,32)},.2)l(a0[a1].stroke,{Color=g(45,45,50),Transparency=.5},.2)end a1=ab af.Visible=true l(ad,{BackgroundColor3=g(60,120,200)},.2)l(ae,{Color=g(80,140,220),Transparency=.3},.2)Z.CanvasPosition=h(0,0)end end)
+ad.MouseEnter:Connect(function()if a1~=ab then l(ad,{BackgroundColor3=g(35,35,40)},.2)end end)
+ad.MouseLeave:Connect(function()if a1~=ab then l(ad,{BackgroundColor3=g(28,28,32)},.2)end end)
+function ac:Section(ag)
+local ah=q("Frame",{Size=e(1,-8,0,0),BackgroundColor3=g(25,25,28),Parent=af})
+w(ah,8)
+z(ah,g(40,40,45))
+local ai=q("Frame",{Size=e(1,0,0,32),BackgroundColor3=g(28,28,32),Parent=ah})
+w(ai,8)
+q("Frame",{Size=e(1,0,0,10),Position=e(0,0,1,-10),BackgroundColor3=g(28,28,32),Parent=ai})
+q("TextLabel",{Size=e(1,-20,1,0),Position=e(0,10,0,0),BackgroundTransparency=1,Text=ag or"Section",TextColor3=g(200,200,210),TextSize=13,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=ai})
+local aj=q("Frame",{Size=e(1,-16,0,0),Position=e(0,8,0,36),BackgroundTransparency=1,Parent=ah})
+local ak=q("UIListLayout",{Padding=f(0,6),SortOrder=Enum.SortOrder.LayoutOrder,Parent=aj})
+q("UIPadding",{PaddingBottom=f(0,8),Parent=aj})
+ak:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()local al=ak.AbsoluteContentSize.Y aj.Size=e(1,-16,0,al)ah.Size=e(1,-8,0,al+40)end)
+local am={}
+function am:Toggle(an,ao,ap)
+local aq=ao or false
+local ar=q("Frame",{Size=e(1,0,0,36),BackgroundColor3=g(22,22,25),Parent=aj})
+w(ar,6)
+local as=z(ar,aq and g(80,120,200)or g(40,40,45))
+as.Transparency=aq and.3 or.5
+q("TextLabel",{Size=e(1,-70,1,0),Position=e(0,10,0,0),BackgroundTransparency=1,Text=an or"Toggle",TextColor3=g(200,200,210),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=ar})
+local at=q("Frame",{Size=e(0,44,0,22),Position=e(1,-52,.5,-11),BackgroundColor3=aq and g(70,110,190)or g(35,35,40),Parent=ar})
+w(at,11)
+local au=q("Frame",{Size=e(0,18,0,18),Position=aq and e(1,-20,.5,-9)or e(0,2,.5,-9),BackgroundColor3=g(255,255,255),Parent=at})
+w(au,9)
+local av=q("TextButton",{Size=e(1,0,1,0),BackgroundTransparency=1,Text="",Parent=ar})
+av.MouseButton1Click:Connect(function()aq=not aq l(at,{BackgroundColor3=aq and g(70,110,190)or g(35,35,40)},.25)l(au,{Position=aq and e(1,-20,.5,-9)or e(0,2,.5,-9)},.25,Enum.EasingStyle.Back)l(as,{Color=aq and g(80,120,200)or g(40,40,45),Transparency=aq and.3 or.5},.2)if ap then ap(aq)end end)
+av.MouseEnter:Connect(function()l(ar,{BackgroundColor3=g(26,26,29)},.2)end)
+av.MouseLeave:Connect(function()l(ar,{BackgroundColor3=g(22,22,25)},.2)end)
+return{Set=function(v)aq=v l(at,{BackgroundColor3=aq and g(70,110,190)or g(35,35,40)},.2)l(au,{Position=aq and e(1,-20,.5,-9)or e(0,2,.5,-9)},.2)end,Get=function()return aq end}
+end
+function am:Button(an,ap)
+local aw=q("TextButton",{Size=e(1,0,0,36),BackgroundColor3=g(22,22,25),Text="",AutoButtonColor=false,Parent=aj})
+w(aw,6)
+local ax=z(aw,g(40,40,45))
+q("TextLabel",{Size=e(1,-20,1,0),Position=e(0,10,0,0),BackgroundTransparency=1,Text=an or"Button",TextColor3=g(200,200,210),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aw})
+aw.MouseButton1Click:Connect(function()if ap then ap()end l(aw,{BackgroundColor3=g(80,120,200)},.1)task.delay(.1,function()l(aw,{BackgroundColor3=g(22,22,25)},.25)end)end)
+aw.MouseEnter:Connect(function()l(aw,{BackgroundColor3=g(26,26,29)},.2)l(ax,{Color=g(60,60,70),Transparency=.3},.2)end)
+aw.MouseLeave:Connect(function()l(aw,{BackgroundColor3=g(22,22,25)},.2)l(ax,{Color=g(40,40,45),Transparency=.5},.2)end)
+return aw
+end
+function am:Slider(an,ay,az,ao,ap)
+local aA=ao or ay
+local aB=q("Frame",{Size=e(1,0,0,42),BackgroundColor3=g(22,22,25),Parent=aj})
+w(aB,6)
+z(aB,g(40,40,45))
+q("TextLabel",{Size=e(0,100,0,16),Position=e(0,10,0,8),BackgroundTransparency=1,Text=an or"Slider",TextColor3=g(200,200,210),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aB})
+local aC=q("Frame",{Size=e(0,120,0,4),Position=e(1,-170,.5,-2),BackgroundColor3=g(30,30,35),Parent=aB})
+w(aC,2)
+local aD=q("Frame",{Size=e((aA-ay)/(az-ay),0,1,0),BackgroundColor3=g(70,110,190),Parent=aC})
+w(aD,2)
+local aE=q("Frame",{Size=e(0,12,0,12),Position=e((aA-ay)/(az-ay),0,.5,0),AnchorPoint=h(.5,.5),BackgroundColor3=g(255,255,255),Parent=aC})
+w(aE,6)
+local aF=q("TextLabel",{Size=e(0,40,0,16),Position=e(1,-45,.5,-8),BackgroundTransparency=1,Text=tostring(aA),TextColor3=g(150,150,160),TextSize=11,Font=i,TextXAlignment=Enum.TextXAlignment.Right,Parent=aB})
+local aG=false
+local function aH(a8)local aI=aC.AbsolutePosition.X local aJ=aC.AbsoluteSize.X local aK=math.clamp((a8.Position.X-aI)/aJ,0,1)aA=math.floor(ay+(az-ay)*aK)aF.Text=tostring(aA)l(aD,{Size=e(aK,0,1,0)},.1)l(aE,{Position=e(aK,0,.5,0)},.1)if ap then ap(aA)end end
+local aL=q("TextButton",{Size=e(1,0,1,0),BackgroundTransparency=1,Text="",ZIndex=10,Parent=aB})
+aL.InputBegan:Connect(function(a8)if a8.UserInputType==Enum.UserInputType.MouseButton1 or a8.UserInputType==Enum.UserInputType.Touch then aG=true aH(a8)l(aE,{Size=e(0,16,0,16)},.15)end end)
+b.InputEnded:Connect(function(a8)if a8.UserInputType==Enum.UserInputType.MouseButton1 or a8.UserInputType==Enum.UserInputType.Touch then aG=false l(aE,{Size=e(0,12,0,12)},.15)end end)
+b.InputChanged:Connect(function(a8)if aG and(a8.UserInputType==Enum.UserInputType.MouseMovement or a8.UserInputType==Enum.UserInputType.Touch)then aH(a8)end end)
+return{Set=function(v)aA=v aF.Text=tostring(v)local aK=(v-ay)/(az-ay)l(aD,{Size=e(aK,0,1,0)},.2)l(aE,{Position=e(aK,0,.5,0)},.2)end,Get=function()return aA end}
+end
+function am:Dropdown(an,aM,ao,ap)
+local aN=ao or aM[1]or""
+local aO=false
+local aP=q("Frame",{Size=e(1,0,0,36),BackgroundColor3=g(22,22,25),ClipsDescendants=true,Parent=aj})
+w(aP,6)
+local aQ=z(aP,g(40,40,45))
+q("TextLabel",{Size=e(1,-120,0,36),Position=e(0,10,0,0),BackgroundTransparency=1,Text=an or"Dropdown",TextColor3=g(200,200,210),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aP})
+local aR=q("TextLabel",{Size=e(0,70,0,20),Position=e(1,-75,0,8),BackgroundColor3=g(28,28,32),Text=aN,TextColor3=g(150,150,160),TextSize=10,Font=i,Parent=aP})
+w(aR,5)
+local aS=q("Frame",{Size=e(1,-10,0,0),Position=e(0,5,0,40),BackgroundTransparency=1,Parent=aP})
+q("UIListLayout",{Padding=f(0,3),SortOrder=Enum.SortOrder.LayoutOrder,Parent=aS})
+for aT,aU in ipairs(aM)do local aV=q("TextButton",{Size=e(1,0,0,28),BackgroundColor3=g(26,26,29),Text="",AutoButtonColor=false,Parent=aS})w(aV,5)q("TextLabel",{Size=e(1,-10,1,0),Position=e(0,8,0,0),BackgroundTransparency=1,Text=aU,TextColor3=g(180,180,190),TextSize=11,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aV})aV.MouseEnter:Connect(function()l(aV,{BackgroundColor3=g(60,100,180)},.15)end)aV.MouseLeave:Connect(function()l(aV,{BackgroundColor3=g(26,26,29)},.15)end)aV.MouseButton1Click:Connect(function()aN=aU aR.Text=aU aO=false l(aP,{Size=e(1,0,0,36)},.25,Enum.EasingStyle.Back)l(aQ,{Color=g(40,40,45)},.2)if ap then ap(aN)end end)end
+local aW=q("TextButton",{Size=e(1,0,0,36),BackgroundTransparency=1,Text="",Parent=aP})
+aW.MouseButton1Click:Connect(function()aO=not aO local aX=aO and(40+#aM*31)or 36 l(aP,{Size=e(1,0,0,aX)},.3,Enum.EasingStyle.Back)l(aQ,{Color=aO and g(80,120,200)or g(40,40,45)},.2)end)
+return{Set=function(v)aN=v aR.Text=v end,Get=function()return aN end}
+end
+function am:MultiDropdown(an,aM,ao,ap)
+local aN=ao or{}
+local aO=false
+local aP=q("Frame",{Size=e(1,0,0,36),BackgroundColor3=g(22,22,25),ClipsDescendants=true,Parent=aj})
+w(aP,6)
+local aQ=z(aP,g(40,40,45))
+q("TextLabel",{Size=e(1,-120,0,36),Position=e(0,10,0,0),BackgroundTransparency=1,Text=an or"Multi Select",TextColor3=g(200,200,210),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aP})
+local aY=q("TextLabel",{Size=e(0,70,0,20),Position=e(1,-75,0,8),BackgroundColor3=g(28,28,32),Text=#aN.." selected",TextColor3=g(150,150,160),TextSize=9,Font=i,Parent=aP})
+w(aY,5)
+local aS=q("Frame",{Size=e(1,-10,0,0),Position=e(0,5,0,40),BackgroundTransparency=1,Parent=aP})
+q("UIListLayout",{Padding=f(0,3),SortOrder=Enum.SortOrder.LayoutOrder,Parent=aS})
+local function aZ(a0,v)for a1,a2 in pairs(a0)do if a2==v then return true end end return false end
+local function a3(a0,v)for a1,a2 in pairs(a0)do if a2==v then table.remove(a0,a1)return end end end
+for aT,aU in ipairs(aM)do local a4=aZ(aN,aU)local aV=q("TextButton",{Size=e(1,0,0,28),BackgroundColor3=g(26,26,29),Text="",AutoButtonColor=false,Parent=aS})w(aV,5)local a5=q("Frame",{Size=e(0,16,0,16),Position=e(0,6,.5,-8),BackgroundColor3=a4 and g(80,120,200)or g(40,45,55),Parent=aV})w(a5,4)local a6=q("TextLabel",{Size=e(1,0,1,0),BackgroundTransparency=1,Text=a4 and"✓"or"",TextColor3=g(255,255,255),TextSize=12,Font=i,Parent=a5})q("TextLabel",{Size=e(1,-30,1,0),Position=e(0,28,0,0),BackgroundTransparency=1,Text=aU,TextColor3=g(180,180,190),TextSize=11,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aV})aV.MouseEnter:Connect(function()l(aV,{BackgroundColor3=g(35,42,55)},.15)end)aV.MouseLeave:Connect(function()l(aV,{BackgroundColor3=g(26,26,29)},.15)end)aV.MouseButton1Click:Connect(function()local a7=aZ(aN,aU)if a7 then a3(aN,aU)else table.insert(aN,aU)end local a8=not a7 l(a5,{BackgroundColor3=a8 and g(80,120,200)or g(40,45,55)},.2)a6.Text=a8 and"✓"or""aY.Text=#aN.." selected"if ap then ap(aN)end end)end
+local aW=q("TextButton",{Size=e(1,0,0,36),BackgroundTransparency=1,Text="",Parent=aP})
+aW.MouseButton1Click:Connect(function()aO=not aO local aX=aO and(44+#aM*28+(#aM-1)*3)or 36 l(aP,{Size=e(1,0,0,aX)},.3,Enum.EasingStyle.Back)l(aQ,{Color=aO and g(80,120,200)or g(40,40,45)},.2)end)
+return{Set=function(v)aN=v aY.Text=#aN.." selected"end,Get=function()return aN end}
+end
+function am:Input(an,a9,ap)
+local ba=q("Frame",{Size=e(1,0,0,36),BackgroundColor3=g(15,15,22),Parent=aj})
+w(ba,8)
+local bb=z(ba,g(60,80,120))
+local bc=q("TextBox",{Size=e(1,-20,1,0),Position=e(0,10,0,0),BackgroundTransparency=1,Text="",PlaceholderText=a9 or an,TextColor3=g(220,220,255),PlaceholderColor3=g(100,110,150),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,ClearTextOnFocus=false,Parent=ba})
+bc.Focused:Connect(function()l(bb,{Color=g(100,150,255),Transparency=.2,Thickness=1.5},.3)l(ba,{BackgroundColor3=g(20,25,35)},.3)end)
+bc.FocusLost:Connect(function(bd)l(bb,{Color=g(60,80,120),Transparency=.5,Thickness=1},.3)l(ba,{BackgroundColor3=g(15,15,22)},.3)if bd and ap then ap(bc.Text)end end)
+return{Set=function(v)bc.Text=v end,Get=function()return bc.Text end}
+end
+function am:Label(an)
+return q("TextLabel",{Size=e(1,-8,0,24),BackgroundTransparency=1,Text=an or"Label",TextColor3=g(100,120,160),TextSize=11,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=aj})
+end
+function am:Separator()
+local be=q("Frame",{Size=e(1,-25,0,1),BackgroundColor3=g(40,50,70),Parent=aj})
+w(be,1)
+return be
+end
+function am:Keybind(an,ao,ap)
+local bf=ao or Enum.KeyCode.E
+local bg=false
+local bh=q("Frame",{Size=e(1,0,0,40),BackgroundColor3=g(22,22,25),Parent=aj})
+w(bh,8)
+local bi=z(bh,g(50,60,80))
+q("TextLabel",{Size=e(1,-120,1,0),Position=e(0,10,0,0),BackgroundTransparency=1,Text=an or"Keybind",TextColor3=g(220,230,255),TextSize=12,Font=i,TextXAlignment=Enum.TextXAlignment.Left,Parent=bh})
+local bj=q("TextButton",{Size=e(0,60,0,24),Position=e(1,-68,.5,-12),BackgroundColor3=g(30,35,45),Text=bf.Name,TextColor3=g(150,170,220),TextSize=10,Font=i,Parent=bh})
+w(bj,6)
+local bk=z(bj,g(50,60,80))
+bj.MouseButton1Click:Connect(function()bg=true bj.Text="..."l(bk,{Color=g(100,150,255)},.2)l(bi,{Color=g(100,150,255),Transparency=.3},.2)end)
+b.InputBegan:Connect(function(a8,bl)if bg and a8.UserInputType==Enum.UserInputType.Keyboard and not bl then bf=a8.KeyCode bj.Text=bf.Name bg=false l(bk,{Color=g(50,60,80)},.2)l(bi,{Color=g(50,60,80),Transparency=.5},.2)if ap then ap(bf)end end end)
+return{Set=function(v)bf=v bj.Text=v.Name end,Get=function()return bf end}
+end
+None,0,255),g(255,255,255),g(180,180,180),g(100,100,100),g(50,50,50),g(0,0,0)}
+local br=q("Frame",{Size=e(1,-16,0,50),Position=e(0,8,0,46),BackgroundTransparency=1,Parent=bn})
+q("UIGridLayout",{CellSize=e(0,32,0,22),CellPadding=e(0,5,0,5),Parent=br})
+for aT,bs in ipairs(bq)do local bt=q("TextButton",{Size=e(0,32,0,22),BackgroundColor3=bs,Text="",Parent=br})w(bt,4)bt.MouseButton1Click:Connect(function()bm=bs bp.BackgroundColor3=bs if ap then ap(bs)end end)bt.MouseEnter:Connect(function()l(bt,{Size=e(0,34,0,24)},.1,Enum.EasingStyle.Back)end)bt.MouseLeave:Connect(function()l(bt,{Size=e(0,32,0,22)},.1)end)end
+local aW=q("TextButton",{Size=e(1,0,0,40),BackgroundTransparency=1,Text="",Parent=bn})
+aW.MouseButton1Click:Connect(function()aO=not aO l(bn,{Size=e(1,0,0,aO and 110 or 40)},.3,Enum.EasingStyle.Back)l(bo,{Color=aO and g(100,150,255)or g(50,60,80)},.2)end)
+return{Set=function(v)bm=v bp.BackgroundColor3=v end,Get=function()return bm end}
+end
+return am
+end
+return ac
+end
+a3()
+C:Notify("Tekkit Hub","UI Loaded Successfully!",3)
+return S
+end
+return C
